@@ -1,37 +1,49 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
-  );
+export default function RootLayout() {
+    return (
+        <Tabs>
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: "Tuner",
+                    tabBarIcon: ({ size, color }) => (
+                        <MaterialCommunityIcons
+                            name="music-note"
+                            size={size}
+                            color="black"
+                        />
+                    ),
+                    headerStyle: { backgroundColor: "#000" },
+                }}
+            />
+            <Tabs.Screen
+                name="metronome"
+                options={{
+                    title: "Metronome",
+                    tabBarIcon: ({ size, color }) => (
+                        <MaterialCommunityIcons
+                            name="metronome"
+                            size={size}
+                            color="black"
+                        />
+                    ),
+                }}
+            />
+            <Tabs.Screen
+                name="practice"
+                options={{
+                    title: "Practice",
+                    tabBarIcon: ({ size, color }) => (
+                        <MaterialCommunityIcons
+                            name="calendar-month"
+                            size={24}
+                            color="black"
+                        />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }
