@@ -15,7 +15,6 @@ export default function RootLayout() {
                             color="black"
                         />
                     ),
-                    headerStyle: { backgroundColor: "#000" },
                 }}
             />
             <Tabs.Screen
