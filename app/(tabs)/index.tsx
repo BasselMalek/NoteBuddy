@@ -9,6 +9,7 @@ import {
     Pressable,
     Appearance,
     useColorScheme,
+    TouchableOpacity,
 } from "react-native";
 import { PitchDetector } from "react-native-pitch-detector";
 import { StatusBar } from "expo-status-bar";
@@ -18,34 +19,35 @@ import { Colors } from "@/constants/Colors";
 import IconButton from "@/components/IconButton";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import calcMidi from "@/constants/MidiNotes";
+import { Svg, Circle } from "react-native-svg";
 
 export default function index() {
     const currentTheme = useColorScheme() ?? "light";
-    console.log(currentTheme);
+    const [isRecording, setisRecording] = useState<Boolean>();
     const [pitch, setPitch] = useState<string>("Nothing Yet");
     const [fill, setFill] = useState<number>(0);
-
     async function startTuner() {
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
         if (status != RESULTS.GRANTED) {
             const permReq = await request(PERMISSIONS.ANDROID.RECORD_AUDIO);
             status = permReq;
         }
-        if (
-            status === RESULTS.GRANTED &&
-            !(await PitchDetector.isRecording()).valueOf()
-        ) {
+        if (status === RESULTS.GRANTED && !isRecording) {
             PitchDetector.start();
-            PitchDetector.addListener((data) => {
+            console.log("started");
+
+            PitchDetector.addListener(async (data) => {
                 const liveInfo = calcMidi(data.frequency);
                 setPitch(liveInfo.note);
                 setFill(liveInfo.fill);
                 console.log(liveInfo);
+                setisRecording(await PitchDetector.isRecording());
             });
         }
     }
     async function stopTuner() {
         PitchDetector.stop();
+        setisRecording(await PitchDetector.isRecording());
         PitchDetector.removeAllListeners();
     }
 
@@ -69,7 +71,7 @@ export default function index() {
                         const localNote = pitch.substring(0, 2);
                         const localOctave = pitch.substring(2);
                         return (
-                            <Text>
+                            <Text style={{ fontSize: 60 }}>
                                 {localNote}
                                 <Text style={{ fontSize: 7, lineHeight: 37 }}>
                                     {localOctave}
@@ -80,7 +82,7 @@ export default function index() {
                         const localNote = pitch.charAt(0);
                         const localOctave = pitch.substring(1);
                         return (
-                            <Text>
+                            <Text style={{ fontSize: 60, zIndex: 9 }}>
                                 {localNote}
                                 <Text style={{ fontSize: 7, lineHeight: 37 }}>
                                     {localOctave}
@@ -92,10 +94,18 @@ export default function index() {
                     }
                 }}
             </AnimatedCircularProgress>
-
+            <TouchableOpacity
+                style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: 100,
+                    backgroundColor: isRecording ? "#00FF00" : "#FF0000",
+                    margin: 5,
+                }}
+            ></TouchableOpacity>
             <IconButton
                 onPress={async () => {
-                    if (await PitchDetector.isRecording()) {
+                    if (isRecording) {
                         stopTuner();
                     } else {
                         startTuner();
