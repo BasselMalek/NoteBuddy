@@ -16,13 +16,14 @@ import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import IconButton from "@/components/IconButton";
+import { AnimatedCircularProgress } from "react-native-circular-progress";
+import calcMidi from "@/constants/MidiNotes";
 
 export default function index() {
     const currentTheme = useColorScheme() ?? "light";
     console.log(currentTheme);
-    const [sound, setSound] = useState();
     const [pitch, setPitch] = useState<string>("Nothing Yet");
-    const [test, setTest] = useState();
+    const [fill, setFill] = useState<number>(0);
 
     async function startTuner() {
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
@@ -36,7 +37,10 @@ export default function index() {
         ) {
             PitchDetector.start();
             PitchDetector.addListener((data) => {
-                setPitch(data.tone);
+                const liveInfo = calcMidi(data.frequency);
+                setPitch(liveInfo.note);
+                setFill(liveInfo.fill);
+                console.log(liveInfo);
             });
         }
     }
@@ -48,7 +52,47 @@ export default function index() {
     return (
         <View style={styles.container}>
             <StatusBar style="dark"></StatusBar>
-            <Text>{pitch}</Text>
+            <AnimatedCircularProgress
+                size={350}
+                lineCap="butt"
+                rotation={-90}
+                arcSweepAngle={180}
+                fill={fill}
+                width={10}
+                tintColor="#00e0ff"
+                backgroundColor="#3d5875"
+            >
+                {(fill) => {
+                    if (pitch.length === 3) {
+                        // const rege = new RegExp(/!([A-Z]#{0, 1})([0-9])/);
+                        // const x = rege.exec(pitch);
+                        const localNote = pitch.substring(0, 2);
+                        const localOctave = pitch.substring(2);
+                        return (
+                            <Text>
+                                {localNote}
+                                <Text style={{ fontSize: 7, lineHeight: 37 }}>
+                                    {localOctave}
+                                </Text>
+                            </Text>
+                        );
+                    } else if (pitch.length === 2) {
+                        const localNote = pitch.charAt(0);
+                        const localOctave = pitch.substring(1);
+                        return (
+                            <Text>
+                                {localNote}
+                                <Text style={{ fontSize: 7, lineHeight: 37 }}>
+                                    {localOctave}
+                                </Text>
+                            </Text>
+                        );
+                    } else {
+                        return <Text>{pitch}</Text>;
+                    }
+                }}
+            </AnimatedCircularProgress>
+
             <IconButton
                 onPress={async () => {
                     if (await PitchDetector.isRecording()) {
