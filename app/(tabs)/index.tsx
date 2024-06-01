@@ -6,13 +6,22 @@ import {
     Button,
     StyleSheet,
     Platform,
+    Pressable,
+    Appearance,
+    useColorScheme,
 } from "react-native";
 import { PitchDetector } from "react-native-pitch-detector";
+import { StatusBar } from "expo-status-bar";
 import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
+import IconButton from "@/components/IconButton";
 
 export default function index() {
+    const currentTheme = useColorScheme() ?? "light";
+    console.log(currentTheme);
     const [sound, setSound] = useState();
-    const [pitch, setPitch] = useState<string>();
+    const [pitch, setPitch] = useState<string>("Nothing Yet");
     const [test, setTest] = useState();
 
     async function startTuner() {
@@ -26,22 +35,43 @@ export default function index() {
             !(await PitchDetector.isRecording()).valueOf()
         ) {
             PitchDetector.start();
-            PitchDetector.addListener(console.log);
+            PitchDetector.addListener((data) => {
+                setPitch(data.tone);
+            });
         }
     }
     async function stopTuner() {
         PitchDetector.stop();
+        PitchDetector.removeAllListeners();
     }
 
     return (
-        <ScrollView>
-            <Text>
-                Hi! Press on the record/playback button to start playing audio
-                recorded after delay
-            </Text>
-            <Text>Current Pitch: {test}</Text>
-            <Button title="Start record/playback" onPress={startTuner} />
-            <Button title="Stop" onPress={stopTuner} />
-        </ScrollView>
+        <View style={styles.container}>
+            <StatusBar style="dark"></StatusBar>
+            <Text>{pitch}</Text>
+            <IconButton
+                onPress={async () => {
+                    if (await PitchDetector.isRecording()) {
+                        stopTuner();
+                    } else {
+                        startTuner();
+                    }
+                }}
+                icon={"microphone"}
+            />
+        </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: "center",
+        alignContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 90,
+    },
+    startButton: {
+        backgroundColor: Colors.dark.tint,
+    },
+});
