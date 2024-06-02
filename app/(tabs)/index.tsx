@@ -23,9 +23,11 @@ import { Svg, Circle } from "react-native-svg";
 
 export default function index() {
     const currentTheme = useColorScheme() ?? "light";
+
     const [isRecording, setisRecording] = useState<Boolean>();
     const [pitch, setPitch] = useState<string>("Nothing Yet");
     const [fill, setFill] = useState<number>(0);
+
     async function startTuner() {
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
         if (status != RESULTS.GRANTED) {
@@ -54,10 +56,21 @@ export default function index() {
     return (
         <View style={styles.container}>
             <StatusBar style="dark"></StatusBar>
+            <TouchableOpacity
+                style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 100,
+                    backgroundColor:
+                        fill > 45 && fill < 55 ? "#00FF00" : "#FF0000",
+                    margin: 5,
+                }}
+            ></TouchableOpacity>
             <AnimatedCircularProgress
                 size={350}
-                lineCap="butt"
+                lineCap="square"
                 rotation={-90}
+                dashedBackground={{ width: 40, gap: 15 }}
                 arcSweepAngle={180}
                 fill={fill}
                 width={10}
@@ -65,35 +78,21 @@ export default function index() {
                 backgroundColor="#3d5875"
             >
                 {(fill) => {
-                    if (pitch.length === 3) {
-                        // const rege = new RegExp(/!([A-Z]#{0, 1})([0-9])/);
-                        // const x = rege.exec(pitch);
-                        const localNote = pitch.substring(0, 2);
-                        const localOctave = pitch.substring(2);
-                        return (
-                            <Text style={{ fontSize: 60 }}>
-                                {localNote}
-                                <Text style={{ fontSize: 7, lineHeight: 37 }}>
-                                    {localOctave}
-                                </Text>
+                    return (
+                        <Text style={{ fontSize: 60 }}>
+                            {pitch.length === 3
+                                ? pitch.substring(0, 2)
+                                : pitch.charAt(0)}
+                            <Text style={{ fontSize: 24 }}>
+                                {pitch.length === 3
+                                    ? pitch.substring(2)
+                                    : pitch.substring(1)}
                             </Text>
-                        );
-                    } else if (pitch.length === 2) {
-                        const localNote = pitch.charAt(0);
-                        const localOctave = pitch.substring(1);
-                        return (
-                            <Text style={{ fontSize: 60, zIndex: 9 }}>
-                                {localNote}
-                                <Text style={{ fontSize: 7, lineHeight: 37 }}>
-                                    {localOctave}
-                                </Text>
-                            </Text>
-                        );
-                    } else {
-                        return <Text>{pitch}</Text>;
-                    }
+                        </Text>
+                    );
                 }}
             </AnimatedCircularProgress>
+
             <TouchableOpacity
                 style={{
                     width: 9,
@@ -105,11 +104,7 @@ export default function index() {
             ></TouchableOpacity>
             <IconButton
                 onPress={async () => {
-                    if (isRecording) {
-                        stopTuner();
-                    } else {
-                        startTuner();
-                    }
+                    isRecording ? stopTuner() : startTuner();
                 }}
                 icon={"microphone"}
             />
