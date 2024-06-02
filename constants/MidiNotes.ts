@@ -120,18 +120,19 @@ interface Result {
     note: string;
     fill: number;
 }
-export default function calcMidi(frequency: number): Object {
+export default function calcMidi(frequency: number): Result {
+    let res: Result = { note: "", fill: 0 };
     const liveMidi = 12 * Math.log2(frequency / 440) + 69;
     let intMidi = Math.trunc(liveMidi);
     let decMidi = liveMidi - intMidi;
     if (liveMidi - intMidi >= 0.5) {
         const barFill = (decMidi - 0.5) * 100;
         const retMidi: string = MIDIREF[(++intMidi).toString()];
-        return { note: retMidi, fill: barFill };
+        res = { note: retMidi, fill: barFill };
     } else if (liveMidi - intMidi < 0.5) {
         const barFill = (decMidi + 0.5) * 100;
         const retMidi: string = MIDIREF[intMidi.toString()];
-        const res: Result = { note: retMidi, fill: barFill };
-        return res;
+        res = { note: retMidi, fill: barFill };
     }
+    return res;
 }
