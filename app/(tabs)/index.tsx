@@ -16,7 +16,6 @@ import { StatusBar } from "expo-status-bar";
 import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import IconButton from "@/components/IconButton";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import calcMidi from "@/constants/MidiNotes";
 import { Svg, Circle } from "react-native-svg";
@@ -102,11 +101,19 @@ export default function index() {
                     margin: 5,
                 }}
             ></TouchableOpacity>
-            <IconButton
+
+            <MaterialCommunityIcons.Button
                 onPress={async () => {
                     isRecording ? stopTuner() : startTuner();
                 }}
-                icon={"microphone"}
+                name="microphone"
+                borderRadius={100}
+                backgroundColor={"#3388FF"}
+                size={40}
+                iconStyle={{ color: "black", marginRight: 5, margin: 5 }}
+                style={{
+                    padding: 0,
+                }}
             />
         </View>
     );
