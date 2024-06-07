@@ -11,6 +11,9 @@ import { DarkTheme, LightTheme } from "@/constants/Colors";
 import { useState, useRef, useReducer } from "react";
 import { useColorScheme } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Svg, Circle } from "react-native-svg";
+import { Ticker, TimeSignature } from "@/components/Ticker";
+
 export default function Metronome() {
     const [activeTheme, setActiveTheme] = useState(
         useColorScheme() === "light" ? LightTheme : DarkTheme
@@ -20,11 +23,13 @@ export default function Metronome() {
         (state: number, action: number) => (state += action),
         90
     );
+    const [currentTimeSignature, setCurrentTimeSignature] =
+        useState<TimeSignature>({ beats: 4, beatValue: 4 });
     const activeInterval = useRef<NodeJS.Timeout>();
 
     return (
         <PaperProvider theme={activeTheme}>
-            <StatusBar style="dark"></StatusBar>
+            <StatusBar style="auto"></StatusBar>
             <View style={style.container}>
                 <Card
                     style={{
@@ -33,7 +38,7 @@ export default function Metronome() {
                         marginBottom: 7,
                     }}
                 >
-                    <PaperText>HI!</PaperText>
+                    <Ticker beats={currentTimeSignature.beats}></Ticker>
                 </Card>
                 <Card
                     style={{
@@ -44,10 +49,46 @@ export default function Metronome() {
                     }}
                 >
                     <View style={{ flexDirection: "row", gap: 15, margin: 20 }}>
-                        <Chip>2/4</Chip>
-                        <Chip>3/4</Chip>
-                        <Chip>4/4</Chip>
-                        <Chip>6/8</Chip>
+                        <Chip
+                            onPress={() => {
+                                setCurrentTimeSignature({
+                                    beats: 2,
+                                    beatValue: 4,
+                                });
+                            }}
+                        >
+                            2/4
+                        </Chip>
+                        <Chip
+                            onPress={() => {
+                                setCurrentTimeSignature({
+                                    beats: 3,
+                                    beatValue: 4,
+                                });
+                            }}
+                        >
+                            3/4
+                        </Chip>
+                        <Chip
+                            onPress={() => {
+                                setCurrentTimeSignature({
+                                    beats: 4,
+                                    beatValue: 4,
+                                });
+                            }}
+                        >
+                            4/4
+                        </Chip>
+                        <Chip
+                            onPress={() => {
+                                setCurrentTimeSignature({
+                                    beats: 6,
+                                    beatValue: 8,
+                                });
+                            }}
+                        >
+                            6/8
+                        </Chip>
                     </View>
                     <View
                         style={{
@@ -63,7 +104,6 @@ export default function Metronome() {
                             }}
                             onLongPress={() => {
                                 activeInterval.current = setInterval(() => {
-                                    console.log("Added");
                                     setCurrentBpm(-10);
                                 }, 100);
                             }}
@@ -86,7 +126,6 @@ export default function Metronome() {
                             }}
                             onLongPress={() => {
                                 activeInterval.current = setInterval(() => {
-                                    console.log("Added");
                                     setCurrentBpm(10);
                                 }, 100);
                             }}

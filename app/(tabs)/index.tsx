@@ -67,7 +67,7 @@ export default function index() {
     return (
         <PaperProvider theme={activeTheme}>
             <View style={styles.container}>
-                <StatusBar style="dark"></StatusBar>
+                <StatusBar style="auto"></StatusBar>
                 <MaterialCommunityIcons
                     size={32}
                     name="music-note"
