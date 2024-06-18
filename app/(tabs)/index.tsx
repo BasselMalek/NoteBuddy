@@ -40,6 +40,9 @@ export default function index() {
     const [fill, setFill] = useState<number>(0);
 
     async function startTuner() {
+        {
+            //TODO: Add some sort of buffering and averaging to avoid noise or the occasional harmonic making the tuner spazm
+        }
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
         if (status != RESULTS.GRANTED) {
             const permReq = await request(PERMISSIONS.ANDROID.RECORD_AUDIO);
@@ -48,12 +51,10 @@ export default function index() {
         if (status === RESULTS.GRANTED && !isRecording) {
             PitchDetector.start();
             setisRecording(true);
-            console.log("started");
             PitchDetector.addListener(async (data) => {
                 const liveInfo = calcMidi(data.frequency);
                 setPitch(liveInfo.note);
                 setFill(liveInfo.fill);
-                console.log(liveInfo);
                 setisRecording(await PitchDetector.isRecording());
             });
         }
