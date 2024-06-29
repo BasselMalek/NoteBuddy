@@ -67,7 +67,7 @@ export default function index() {
 
     return (
         <PaperProvider theme={activeTheme}>
-            <View style={styles.container}>
+            <View style={styles.rootContainer}>
                 <StatusBar style="auto"></StatusBar>
                 <MaterialCommunityIcons
                     size={32}
@@ -172,7 +172,7 @@ export default function index() {
 }
 
 const styles = StyleSheet.create({
-    container: {
+    rootContainer: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
