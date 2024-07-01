@@ -17,6 +17,7 @@
 >
 > - [x] Working prototype.
 > - [x] BPM/Signature Selectors.
+> - [ ] Implement cross-platform metronome OR test out upcoming Expo Metronome on release.
 > - [ ] Basic animation.
 > - [ ] Fix animation drift.
 >

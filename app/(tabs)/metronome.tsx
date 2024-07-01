@@ -14,7 +14,7 @@ import { useColorScheme } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Svg, Circle } from "react-native-svg";
 import { Ticker, TimeSignature } from "@/components/Ticker";
-import MetronomeModule from "react-native-metronome-module";
+import { Metronome as MetronomeModule } from "rn-metronome";
 import Animated, {
     useSharedValue,
     withRepeat,
@@ -33,8 +33,8 @@ export default function Metronome() {
     const [currentBpm, setCurrentBpm] = useReducer(
         //TODO1.1: make it so the action obj has exactValue/additiveValue to account for exact/increment
         (state: number, action: number) => {
+            MetronomeModule.stop();
             state += action;
-            MetronomeModule.setBPM(state);
             return state;
         },
         120
@@ -43,7 +43,6 @@ export default function Metronome() {
         useState<TimeSignature>({ beats: 4, beatValue: 4 });
 
     const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
-    MetronomeModule.setShouldPauseOnLostFocus(true);
 
     const activeLongPressInterval = useRef<NodeJS.Timeout>();
 
@@ -75,12 +74,12 @@ export default function Metronome() {
                         mode="elevated"
                         style={{ marginRight: 0, alignSelf: "center" }}
                         onPress={async () => {
-                            if (await MetronomeModule.isPlaying()) {
+                            if (isMetronomePlaying) {
                                 MetronomeModule.stop();
                                 setIsMetronomePlaying(!isMetronomePlaying);
                             } else {
                                 setIsMetronomePlaying(!isMetronomePlaying);
-                                MetronomeModule.start();
+                                MetronomeModule.play(currentBpm);
                             }
                         }}
                     />

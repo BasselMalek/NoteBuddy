@@ -7485,6 +7485,11 @@ rimraf@~2.6.2:
   dependencies:
     glob "^7.1.3"
 
+rn-metronome@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/rn-metronome/-/rn-metronome-0.2.0.tgz#168c27ea88a47fa398fa08edf9254823d78bfbfa"
+  integrity sha512-dNTALhbxysGAqve8YhwIFoAHJNgauMZv5PtOBzi90SnyxXc6EmbS5t+yWdWbOYtEVV3uH+5vI3ZSqm6vkQdiYQ==
+
 run-parallel@^1.1.9:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/run-parallel/-/run-parallel-1.2.0.tgz#66d1368da7bdf921eb9d95bd1a9229e7f21a43ee"
