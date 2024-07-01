@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { View, Text, ViewBase, StyleProp, StyleSheet } from "react-native";
 import {
     PaperProvider,
@@ -11,6 +12,7 @@ import {
 import { DarkTheme } from "@/constants/Colors";
 import { useState } from "react";
 import RatingSelector from "@/components/RatingSelector";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
 
 export default function Entry(props: {
     isExpanded: boolean;
@@ -19,6 +21,9 @@ export default function Entry(props: {
 }) {
     const [editingActive, setEditingActive] = useState(false);
     const [rating, setRating] = useState(2);
+    const ratingHandler = (rating: number) => {
+        setRating(rating);
+    };
     if (props.entryDate) {
         if (editingActive) {
             return (
@@ -26,7 +31,8 @@ export default function Entry(props: {
                     <Card style={styles.expandedCard}>
                         <TextInput mode="outlined" label={"Title"}></TextInput>
                         <RatingSelector
-                            ratingState={5}
+                            ratingState={rating}
+                            ratingHandler={ratingHandler}
                             starColor={DarkTheme.colors.secondary}
                         ></RatingSelector>
                         <PaperText
@@ -36,7 +42,7 @@ export default function Entry(props: {
                                 fontStyle: "italic",
                             }}
                         >
-                            2hrs 5m
+                            <RNDateTimePicker mode="time"></RNDateTimePicker>
                         </PaperText>
                         <TextInput
                             mode="outlined"

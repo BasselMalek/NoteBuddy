@@ -5,6 +5,7 @@ import { View } from "react-native";
 
 export default function RatingSelector(props: {
     ratingState: number;
+    ratingHandler: Function;
     starColor: string;
 }) {
     const [starStates, setStarStates] = useState<
@@ -31,7 +32,7 @@ export default function RatingSelector(props: {
                     key={index}
                     // // onPress={props.ratingStateAction(index)}
                     onPress={() => {
-                        console.log(index);
+                        props.ratingHandler(index + 1);
                     }}
                 >
                     <MaterialCommunityIcons

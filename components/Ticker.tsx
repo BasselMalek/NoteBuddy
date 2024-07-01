@@ -76,13 +76,16 @@ const AnimatedChip = forwardRef(
         });
         useImperativeHandle(ref, () => ({
             animate: (duration: number) => {
-                sharedColorValue.value = withSequence(
-                    withTiming(1, { duration: duration / 2 }),
-                    withTiming(0, { duration: duration / 2 })
-                );
+                runOnUI(() => {
+                    sharedColorValue.value = withSequence(
+                        withTiming(1, { duration: duration / 2 }),
+                        withTiming(0, { duration: duration / 2 })
+                    );
+                })();
             },
             cancelAnimation: () => {
                 cancelAnimation(sharedColorValue);
+                sharedColorValue.value = 0;
             },
         }));
 
@@ -110,21 +113,41 @@ function Ticker(props: {
     bpm: number;
 }) {
     const initArray = Array.from({ length: props.beats }, (j, k) => k);
-    const noteRefs = Array.from({ length: props.beats }, (j, k) => createRef());
+    const noteRefs = useRef(initArray.map(() => React.createRef()));
+    const intervalId = useRef();
+    const measureDuration = (60000 / props.bpm) * props.beats;
+
+    useEffect(() => {
+        noteRefs.current = Array.from({ length: props.beats }, () =>
+            React.createRef()
+        );
+    }, [props.beats]);
 
     useEffect(() => {
         if (props.metronomeStatus) {
-            noteRefs.forEach((ref) => {
-                ref.current.animate(6000 / props.bpm);
-            });
+            intervalId.current = setInterval(() => {
+                noteRefs.current.forEach((ref, index) => {
+                    setTimeout(() => {
+                        ref.current.animate(props.bpm);
+                    }, index * (measureDuration / props.bpm)); // Stagger the animation
+                });
+            }, 60000 / props.bpm);
         } else {
-            noteRefs.forEach((ref) => {
-                cancelAnimation(ref.current.cancelAnimation);
-            });
+            if (intervalId.current) {
+                clearInterval(intervalId.current);
+                intervalId.current = null;
+                if (noteRefs.current) {
+                    noteRefs.current.forEach((ref) => {
+                        ref.current.cancelAnimation();
+                    });
+                }
+            }
         }
-
-        return () => {};
-    }, [props.metronomeStatus, props.bpm]);
+        return () => {
+            clearInterval(intervalId.current);
+            intervalId.current = null;
+        };
+    }, [props.metronomeStatus, props.beats, props.bpm]);
 
     return (
         <View
@@ -139,7 +162,7 @@ function Ticker(props: {
                 return (
                     <AnimatedChip
                         key={index}
-                        ref={noteRefs[index]}
+                        ref={noteRefs.current[index]}
                         sourceColor={props.sourceColor}
                         targetColor={props.targetColor}
                         ballStyle={{}}
