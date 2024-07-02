@@ -41,7 +41,7 @@ export default function index() {
 
     async function startTuner() {
         {
-            //TODO: Add some sort of buffering and averaging to avoid noise or the occasional harmonic making the tuner spazm
+            //TODO(2): Add some sort of buffering and averaging to avoid noise or the occasional harmonic making the tuner spazm
         }
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
         if (status != RESULTS.GRANTED) {

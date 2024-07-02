@@ -31,7 +31,7 @@ export default function Metronome() {
     );
 
     const [currentBpm, setCurrentBpm] = useReducer(
-        //TODO1.1: make it so the action obj has exactValue/additiveValue to account for exact/increment
+        //TODO(1.1): make it so the action obj has exactValue/additiveValue to account for exact/increment
         (state: number, action: number) => {
             MetronomeModule.stop();
             state += action;
@@ -164,7 +164,7 @@ export default function Metronome() {
                             <MaterialCommunityIcons name="minus"></MaterialCommunityIcons>
                         </PaperButton>
                         <Chip style={{ justifyContent: "center" }}>
-                            {/* //TODO1: turn this into a text input field to
+                            {/* //TODO(1): turn this into a text input field to
                                 enter an exact BPM.*/}
 
                             {currentBpm}
