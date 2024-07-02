@@ -41,7 +41,6 @@
     "react-native-fast-base64": "^0.1.2",
     "react-native-gesture-handler": "~2.16.1",
     "react-native-live-audio-stream": "^1.1.1",
-    "react-native-metronome-module": "^2.4.1",
     "react-native-paper": "^5.12.3",
     "react-native-permissions": "^3.10.1",
     "react-native-pitch-detector": "^0.1.6",
