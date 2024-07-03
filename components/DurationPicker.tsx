@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Platform } from "react-native";
 import RNDateTimePicker, {
     DateTimePickerAndroid,
+    DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 //TODO(3): add input validation {from<to}.
 export default function DurationPicker(props: {
@@ -14,11 +15,11 @@ export default function DurationPicker(props: {
 }) {
     const [showFrom, setShowFrom] = useState(false);
     const [showTo, setShowTo] = useState(false);
-    const onFromChange = (event: any, selectedDate: Date) => {
+    const onFromChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
         const currentDate = selectedDate;
         props.fromHandler(currentDate);
     };
-    const onToChange = (event: any, selectedDate: Date) => {
+    const onToChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
         const currentDate = selectedDate;
         props.toHandler(currentDate);
     };
