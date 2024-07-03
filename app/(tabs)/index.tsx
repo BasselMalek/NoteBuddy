@@ -28,13 +28,9 @@ import {
     MD3LightTheme as DefaultLight,
 } from "react-native-paper";
 import { Svg, Circle } from "react-native-svg";
-import { LightTheme, DarkTheme } from "@/constants/Colors";
+import { getAdaptaiveTheme } from "@/constants/Colors";
 
 export default function index() {
-    const currentTheme = useColorScheme() ?? "light";
-    const [activeTheme, setActiveTheme] = useState(
-        currentTheme === "light" ? LightTheme : DarkTheme
-    );
     const [isRecording, setisRecording] = useState<Boolean>();
     const [pitch, setPitch] = useState<string>("Nothing Yet");
     const [fill, setFill] = useState<number>(0);
@@ -66,7 +62,7 @@ export default function index() {
     }
 
     return (
-        <PaperProvider theme={activeTheme}>
+        <PaperProvider theme={getAdaptaiveTheme()}>
             <View style={styles.rootContainer}>
                 <StatusBar style="auto"></StatusBar>
                 <MaterialCommunityIcons
@@ -74,8 +70,8 @@ export default function index() {
                     name="music-note"
                     color={
                         fill > 45 && fill < 55
-                            ? activeTheme.colors.tertiary
-                            : activeTheme.colors.outlineVariant
+                            ? getAdaptaiveTheme().colors.tertiary
+                            : getAdaptaiveTheme().colors.outlineVariant
                     }
                     style={{
                         paddingBottom: 10,
@@ -96,8 +92,10 @@ export default function index() {
                         arcSweepAngle={210}
                         fill={fill}
                         width={10}
-                        tintColor={activeTheme.colors.tertiary}
-                        backgroundColor={activeTheme.colors.primaryContainer}
+                        tintColor={getAdaptaiveTheme().colors.tertiary}
+                        backgroundColor={
+                            getAdaptaiveTheme().colors.primaryContainer
+                        }
                     >
                         {(fill) => {
                             return (
@@ -124,7 +122,7 @@ export default function index() {
                     <MaterialCommunityIcons
                         name="music-accidental-flat"
                         size={32}
-                        color={activeTheme.colors.primary}
+                        color={getAdaptaiveTheme().colors.primary}
                         style={{
                             top: 220,
                             left: -20,
@@ -133,7 +131,7 @@ export default function index() {
                     />
                     <MaterialCommunityIcons
                         name="music-accidental-sharp"
-                        color={activeTheme.colors.primary}
+                        color={getAdaptaiveTheme().colors.primary}
                         size={32}
                         style={{
                             position: "absolute",
@@ -148,8 +146,8 @@ export default function index() {
                         height: 9,
                         borderRadius: 100,
                         backgroundColor: isRecording
-                            ? activeTheme.colors.tertiary
-                            : activeTheme.colors.outlineVariant,
+                            ? getAdaptaiveTheme().colors.tertiary
+                            : getAdaptaiveTheme().colors.outlineVariant,
                         margin: 5,
                         elevation: 3,
                         alignSelf: "center",

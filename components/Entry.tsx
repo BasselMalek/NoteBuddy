@@ -10,7 +10,7 @@ import {
     FAB,
     TextInput,
 } from "react-native-paper";
-import { DarkTheme } from "@/constants/Colors";
+import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useState, useEffect } from "react";
 import RatingSelector from "@/components/RatingSelector";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
@@ -39,7 +39,7 @@ export default function Entry(props: {
 
     if (props.entryDate) {
         return (
-            <PaperProvider theme={DarkTheme}>
+            <PaperProvider>
                 <Card style={styles.expandedCard}>
                     {(editingActive && (
                         <>
@@ -51,36 +51,13 @@ export default function Entry(props: {
                                 }}
                                 label={"Title"}
                             ></TextInput>
-                            {/* <PaperText
-                                variant="titleSmall"
-                                style={{
-                                    fontWeight: "thin",
-                                    fontStyle: "italic",
-                                    color: DarkTheme.colors
-                                        .onSecondaryContainer,
-                                }}
-                            >
-                                Difficulty
-                            </PaperText> */}
                             <RatingSelector
                                 ratingState={entryRating}
                                 ratingHandler={(entryRating: number) => {
                                     setEntryRating(entryRating);
                                 }}
-                                starColor={DarkTheme.colors.secondary}
+                                starColor={getAdaptaiveTheme().colors.secondary}
                             ></RatingSelector>
-                            {/* <PaperText
-                                variant="titleSmall"
-                                style={{
-                                    fontWeight: "thin",
-                                    fontStyle: "italic",
-                                    color: DarkTheme.colors
-                                        .onSecondaryContainer,
-                                }}
-                            >
-                                Duration
-                            </PaperText> */}
-
                             <DurationPicker
                                 fromValue={durationFrom}
                                 fromHandler={(start: any) => {
@@ -152,7 +129,7 @@ export default function Entry(props: {
         );
     } else {
         return (
-            <PaperProvider theme={DarkTheme}>
+            <PaperProvider theme={getAdaptaiveTheme()}>
                 <Card style={styles.expandedCard}>
                     <PaperText>No entry for today.</PaperText>
                     <FAB

@@ -8,7 +8,7 @@ import {
     FAB,
 } from "react-native-paper";
 import { StatusBar } from "expo-status-bar";
-import { DarkTheme, LightTheme } from "@/constants/Colors";
+import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useState, useRef, useReducer } from "react";
 import { useColorScheme } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -26,10 +26,6 @@ import Animated, {
     interpolateColor,
 } from "react-native-reanimated";
 export default function Metronome() {
-    const [activeTheme, setActiveTheme] = useState(
-        useColorScheme() === "light" ? LightTheme : DarkTheme
-    );
-
     const [currentBpm, setCurrentBpm] = useReducer(
         //TODO(1.1): make it so the action obj has exactValue/additiveValue to account for exact/increment
         (state: number, action: number) => {
@@ -47,7 +43,7 @@ export default function Metronome() {
     const activeLongPressInterval = useRef<NodeJS.Timeout>();
 
     return (
-        <PaperProvider theme={activeTheme}>
+        <PaperProvider theme={getAdaptaiveTheme()}>
             <StatusBar style="auto"></StatusBar>
             <View style={style.container}>
                 {
@@ -66,8 +62,8 @@ export default function Metronome() {
                         bpm={currentBpm}
                         metronomeStatus={isMetronomePlaying}
                         beats={currentTimeSignature.beats}
-                        sourceColor={activeTheme.colors.secondary}
-                        targetColor={activeTheme.colors.tertiary}
+                        sourceColor={getAdaptaiveTheme().colors.secondary}
+                        targetColor={getAdaptaiveTheme().colors.tertiary}
                     ></Ticker>
                     <FAB
                         icon={isMetronomePlaying ? "pause" : "play"}

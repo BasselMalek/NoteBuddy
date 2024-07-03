@@ -1,4 +1,9 @@
 import { MD3LightTheme, MD3DarkTheme } from "react-native-paper";
+import { useColorScheme } from "react-native";
+function getAdaptaiveTheme() {
+    return useColorScheme() === "dark" ? DarkTheme : LightTheme;
+}
+
 const DarkTheme = {
     ...MD3DarkTheme,
 
@@ -103,4 +108,4 @@ const LightTheme = {
     },
 };
 
-export { LightTheme, DarkTheme };
+export { getAdaptaiveTheme };
