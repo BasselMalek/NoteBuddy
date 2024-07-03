@@ -45,6 +45,7 @@ export default function Entry(props: {
                         <>
                             <TextInput
                                 mode="outlined"
+                                value={entryTitle}
                                 onChangeText={(text) => {
                                     setEntryTitle(text);
                                 }}
@@ -79,6 +80,7 @@ export default function Entry(props: {
                             >
                                 Duration
                             </PaperText> */}
+
                             <DurationPicker
                                 fromValue={durationFrom}
                                 fromHandler={(start: any) => {
@@ -91,6 +93,7 @@ export default function Entry(props: {
                             ></DurationPicker>
                             <TextInput
                                 mode="outlined"
+                                value={entryDesc}
                                 label={"Entry"}
                                 onChangeText={(text) => {
                                     setEntryDesc(text);
@@ -115,9 +118,13 @@ export default function Entry(props: {
                                     style={{
                                         fontWeight: "thin",
                                         fontStyle: "italic",
+                                        fontSize: 16,
                                     }}
                                 >
-                                    {entryRating}
+                                    {Array.from(
+                                        { length: entryRating },
+                                        (i, k) => k
+                                    ).map((i, k) => "★")}
                                 </PaperText>
                                 <PaperText
                                     variant="titleSmall"
@@ -129,11 +136,7 @@ export default function Entry(props: {
                                     {entryDuration}
                                 </PaperText>
                                 <PaperText style={{ paddingVertical: 30 }}>
-                                    Mollit mollit consequat aliqua aliquip
-                                    officia nisi aute. Nostrud sint amet nisi
-                                    veniam veniam enim et proident consectetur
-                                    cillum do. Occaecat non laboris irure dolore
-                                    dolor velit laboris qui ea nisi incididunt.
+                                    {entryDesc}
                                 </PaperText>
                             </>
                         ))}

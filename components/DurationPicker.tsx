@@ -25,7 +25,7 @@ export default function DurationPicker(props: {
     };
     if (Platform.OS === "android") {
         return (
-            <View style={{ flexDirection: "row", gap: 15 }}>
+            <View style={{ flexDirection: "row", gap: 15, marginBottom: 10 }}>
                 <Chip
                     onPress={() => {
                         DateTimePickerAndroid.open({
