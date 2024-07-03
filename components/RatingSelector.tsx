@@ -1,7 +1,7 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { TouchableRipple } from "react-native-paper";
 import { View } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
 
 export default function RatingSelector(props: {
     ratingState: number;
@@ -9,24 +9,24 @@ export default function RatingSelector(props: {
     starColor: string;
 }) {
     const [starStates, setStarStates] = useState<
-        ("star" | "star-outline" | undefined)[]
+        ("star" | "staro" | undefined)[]
     >([]);
 
     useEffect(() => {
         const newStarStates = Array.from({ length: 5 }, (_, index) =>
-            index + 1 <= props.ratingState ? "star" : "star-outline"
+            index + 1 <= props.ratingState ? "star" : "staro"
         );
         setStarStates(newStarStates);
 
         return () => {
             // // starRefs.map((val, index) => {
-            // //     val.current = "star-outline";
+            // //     val.current = "staro";
             // // });
         };
     }, [props.ratingState]);
 
     return (
-        <View style={{ flexDirection: "row" }}>
+        <View style={{ flexDirection: "row", marginVertical: 10 }}>
             {starStates.map((val, index) => (
                 <TouchableRipple
                     key={index}
@@ -35,11 +35,11 @@ export default function RatingSelector(props: {
                         props.ratingHandler(index + 1);
                     }}
                 >
-                    <MaterialCommunityIcons
+                    <AntDesign
                         name={val}
-                        size={40}
+                        size={32}
                         style={{ color: props.starColor }}
-                    ></MaterialCommunityIcons>
+                    ></AntDesign>
                 </TouchableRipple>
             ))}
         </View>
