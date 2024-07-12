@@ -1,10 +1,7 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { View, Text, ViewBase, StyleProp, StyleSheet } from "react-native";
+import { View, StyleProp, StyleSheet } from "react-native";
 import DurationPicker from "@/components/DurationPicker";
 import {
     PaperProvider,
-    useTheme,
     Text as PaperText,
     Card,
     FAB,
@@ -13,12 +10,23 @@ import {
 import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useState, useEffect } from "react";
 import RatingSelector from "@/components/RatingSelector";
-import RNDateTimePicker from "@react-native-community/datetimepicker";
 
-export default function Entry(props: {
+interface Entrystruct {
+    date: Date;
+    title: string;
+    durationTime: string;
+    durationFrom: Date;
+    durationTo: Date;
+    rating: number;
+    desc: string;
+}
+
+type EntryData = Entrystruct | null;
+
+function Entry(props: {
     isExpanded: boolean;
     style?: StyleProp<View>;
-    entryDate: boolean;
+    entryData: EntryData;
 }) {
     const [editingActive, setEditingActive] = useState(false);
 
@@ -37,7 +45,7 @@ export default function Entry(props: {
         return () => {};
     }, [durationFrom, durationTo]);
 
-    if (props.entryDate) {
+    if (props.entryData != null) {
         return (
             <PaperProvider theme={getAdaptaiveTheme()}>
                 <Card style={styles.expandedCard}>
@@ -159,3 +167,5 @@ const styles = StyleSheet.create({
         top: 600,
     },
 });
+
+export { Entry, EntryData };
