@@ -39,7 +39,7 @@ export default function Entry(props: {
 
     if (props.entryDate) {
         return (
-            <PaperProvider>
+            <PaperProvider theme={getAdaptaiveTheme()}>
                 <Card style={styles.expandedCard}>
                     {(editingActive && (
                         <>

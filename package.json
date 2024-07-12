@@ -36,6 +36,7 @@
     "react-dom": "18.2.0",
     "react-native": "0.74.1",
     "react-native-buffer": "^6.0.3",
+    "react-native-calendar-strip": "^2.2.6",
     "react-native-calendars": "^1.1305.0",
     "react-native-circular-progress": "^1.4.0",
     "react-native-fast-base64": "^0.1.2",

@@ -28,7 +28,7 @@ import {
     MD3LightTheme as DefaultLight,
 } from "react-native-paper";
 import { Svg, Circle } from "react-native-svg";
-import { getAdaptaiveTheme } from "@/constants/Colors";
+import { getAdaptaiveTheme, LightTheme, DarkTheme } from "@/constants/Colors";
 
 export default function index() {
     const [isRecording, setisRecording] = useState<Boolean>();

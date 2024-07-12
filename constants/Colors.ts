@@ -108,4 +108,4 @@ const LightTheme = {
     },
 };
 
-export { getAdaptaiveTheme };
+export { LightTheme, DarkTheme, getAdaptaiveTheme };
