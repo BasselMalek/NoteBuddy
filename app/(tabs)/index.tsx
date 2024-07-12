@@ -29,8 +29,24 @@ import {
 } from "react-native-paper";
 import { Svg, Circle } from "react-native-svg";
 import { getAdaptaiveTheme, LightTheme, DarkTheme } from "@/constants/Colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SQL from "expo-sqlite";
 
 export default function index() {
+    const firstLaunchSetup = async () => {
+        try {
+            const flag = await AsyncStorage.getItem("firstLaunch");
+            if (flag != "true") {
+                const db = await SQL.openDatabaseAsync("PracticeEntries.db");
+                db.execAsync(
+                    "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY, title TEXT,startTime TIME,endTime TIME,duration TEXT,rating INTEGER,description TEXT)"
+                );
+                await AsyncStorage.setItem("firstLaunch", "true");
+            }
+        } catch (e) {
+            //do something
+        }
+    };
     const [isRecording, setisRecording] = useState<Boolean>();
     const [pitch, setPitch] = useState<string>("Nothing Yet");
     const [fill, setFill] = useState<number>(0);
