@@ -33,7 +33,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SQL from "expo-sqlite";
 
 export default function index() {
-    const firstLaunchSetup = async () => {
+    (async () => {
         try {
             const flag = await AsyncStorage.getItem("firstLaunch");
             if (flag != "true") {
@@ -46,7 +46,7 @@ export default function index() {
         } catch (e) {
             //do something
         }
-    };
+    })();
     const [isRecording, setisRecording] = useState<Boolean>();
     const [pitch, setPitch] = useState<string>("Nothing Yet");
     const [fill, setFill] = useState<number>(0);
