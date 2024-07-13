@@ -4,45 +4,57 @@ import {
     Text as PaperText,
     PaperProvider,
     ActivityIndicator,
+    FAB,
 } from "react-native-paper";
 import { Entry, EntryData } from "@/components/Entry";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { getAdaptaiveTheme } from "@/constants/Colors";
 import { CalendarProvider, ExpandableCalendar } from "react-native-calendars";
 import { Theme as CalendarTheme } from "react-native-calendars/src/types";
 import * as SQL from "expo-sqlite";
 
 export default function Practice() {
-    // const createStatement = await db.prepareAsync(
-    //     "INSERT INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    // );
-    // const updateStatement = await db.prepareAsync(
-    //     "UPDATE entries SET title = ?, startTime = ?, endTime = ?, duration = ?, rating = ?, description = ? WHERE date = ?"
-    // );
+    const db = useRef<SQL.SQLiteDatabase | null>(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [loadedEntry, setLoadedEntry] = useState<EntryData>(null);
+    const [loadedEntry, setLoadedEntry] = useState<EntryData | null>(null);
     useEffect(() => {
         try {
             (async () => {
-                const db = await SQL.openDatabaseAsync("PracticeEntries.db");
-                const retrieveStatment = await db.prepareAsync(
-                    "SELECT * FROM entries where date= $date"
+                const conn = await SQL.openDatabaseAsync("PracticeEntries.db");
+                db.current = conn;
+                const retrieveStatment = await db.current.prepareAsync(
+                    "SELECT date, title, startTime, endTime, duration, rating, description FROM entries where date= $date"
                 );
                 const res = await retrieveStatment.executeAsync({
                     $date: selectedDate
                         .toISOString()
-                        .slice(0, 19)
+                        .slice(0, 10)
                         .replace("T", " "),
                 });
                 const spreadRes = await res.getFirstAsync();
-                console.log(spreadRes);
-                res.resetAsync();
 
-                // if (spreadRes) {
-                //     setLoadedEntry({ ...spreadRes });
-                // } else {
-                //     setLoadedEntry(null);
-                // }
+                console.log(spreadRes);
+                if (spreadRes) {
+                    setLoadedEntry({
+                        date: new Date(spreadRes.date),
+                        title: spreadRes.title,
+                        durationTime: spreadRes.duration,
+                        durationFrom: new Date(
+                            `${spreadRes.date}T${spreadRes.startTime}`
+                        ),
+                        durationTo: new Date(
+                            `${spreadRes.date}T${spreadRes.endTime}`
+                        ),
+                        rating: spreadRes.rating,
+                        desc: spreadRes.description,
+                        toAdd: false,
+                    });
+                } else {
+                    setLoadedEntry(null);
+                }
+                console.log("this is " + loadedEntry?.desc);
+
+                res.resetAsync();
             })();
         } catch (e) {}
         return () => {};
@@ -68,7 +80,7 @@ export default function Practice() {
             <CalendarProvider
                 style={{ flex: 1, maxHeight: 122 }}
                 theme={calTheme}
-                date={selectedDate}
+                date={selectedDate.toString()}
             >
                 <ExpandableCalendar
                     theme={calTheme}
@@ -80,15 +92,116 @@ export default function Practice() {
                     disablePan
                     hideKnob
                     onDayPress={(day) => {
-                        console.log(day.dateString.slice(0, 10));
+                        setSelectedDate(new Date(day.dateString.slice(0, 10)));
                     }}
                 ></ExpandableCalendar>
             </CalendarProvider>
             <View style={styles.rootContainer}>
-                {/* </Card> */}
-                <Suspense fallback={<ActivityIndicator></ActivityIndicator>}>
-                    <Entry entryData={loadedEntry} isExpanded={true}></Entry>
-                </Suspense>
+                {(loadedEntry === null && (
+                    <>
+                        <PaperText>No entry for today. Add one?</PaperText>
+                        <FAB
+                            icon={"plus"}
+                            // style={styles.fab}
+                            onPress={() => {
+                                setLoadedEntry({
+                                    date: selectedDate,
+                                    toAdd: true,
+                                });
+                            }}
+                        ></FAB>
+                    </>
+                )) ||
+                    (loadedEntry != null && (
+                        <Suspense
+                            fallback={<ActivityIndicator></ActivityIndicator>}
+                        >
+                            <Entry
+                                entryData={loadedEntry}
+                                onEntryChangeHandler={async (
+                                    newEntry: EntryData
+                                ) => {
+                                    setLoadedEntry(newEntry);
+                                    if (newEntry.toAdd) {
+                                        const createStatement =
+                                            await db.current.prepareAsync(
+                                                "INSERT INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                                            );
+                                        const rows =
+                                            await createStatement.executeAsync<{
+                                                date: Date;
+                                                title: string;
+                                                startTime: string;
+                                                endTime: Date;
+                                                duration: Date;
+                                                rating: number;
+                                                description: string;
+                                            }>(
+                                                loadedEntry.date
+                                                    .toISOString()
+                                                    .slice(0, 19)
+                                                    .replace("T", " "),
+                                                loadedEntry.title,
+                                                loadedEntry.durationFrom
+                                                    .toISOString()
+                                                    .slice(0, 19)
+                                                    .replace("T", " "),
+                                                loadedEntry.durationTo
+                                                    .toISOString()
+                                                    .slice(0, 19)
+                                                    .replace("T", " "),
+                                                loadedEntry.durationTime,
+                                                loadedEntry.rating,
+                                                loadedEntry.desc
+                                            );
+                                        const res = await rows.getFirstAsync();
+                                        setLoadedEntry({
+                                            ...res,
+                                            toAdd: false,
+                                        });
+                                    } else if (newEntry.toEdit === true) {
+                                        const updateStatement =
+                                            await db.current.prepareAsync(
+                                                "UPDATE entries SET title = ?, startTime = ?, endTime = ?, duration = ?, rating = ?, description = ? WHERE date = ?"
+                                            );
+                                        const rows =
+                                            await updateStatement.executeAsync<{
+                                                title: string;
+                                                startTime: string;
+                                                endTime: Date;
+                                                duration: Date;
+                                                rating: number;
+                                                description: string;
+                                                date: Date;
+                                            }>(
+                                                loadedEntry.title,
+                                                loadedEntry.durationFrom
+                                                    .toISOString()
+                                                    .slice(0, 19)
+                                                    .replace("T", " "),
+                                                loadedEntry.durationTo
+                                                    .toISOString()
+                                                    .slice(0, 19)
+                                                    .replace("T", " "),
+                                                loadedEntry.durationTime,
+                                                loadedEntry.rating,
+                                                loadedEntry.desc,
+                                                loadedEntry.date
+                                                    .toISOString()
+                                                    .slice(0, 19)
+                                                    .replace("T", " ")
+                                            );
+                                        const res = await rows.getFirstAsync();
+                                        setLoadedEntry({
+                                            ...res,
+                                            toAdd: false,
+                                        });
+                                    }
+                                }}
+                                isExpanded={true}
+                            ></Entry>
+                        </Suspense>
+                    ))}
             </View>
         </PaperProvider>
     );
@@ -105,5 +218,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         flex: 1,
         marginBottom: 5,
+    },
+    fab: {
+        position: "absolute",
+        margin: 16,
+        right: -15,
     },
 });
