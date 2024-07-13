@@ -101,131 +101,123 @@ function Entry(props: {
     }, [activeEntryData.durationFrom, activeEntryData.durationTo]);
 
     return (
-        <PaperProvider theme={getAdaptaiveTheme()}>
-            <Card style={styles.expandedCard}>
-                {(editingActive && (
+        <>
+            {(editingActive && (
+                <>
+                    <TextInput
+                        mode="outlined"
+                        value={activeEntryData.title}
+                        onChangeText={(text) => {
+                            setEntryTitle(text);
+                        }}
+                        label={"Title"}
+                    ></TextInput>
+                    <RatingSelector
+                        ratingState={
+                            activeEntryData.rating === undefined
+                                ? 0
+                                : activeEntryData.rating
+                        }
+                        ratingHandler={(entryRating: number) => {
+                            setEntryRating(entryRating);
+                        }}
+                        starColor={getAdaptaiveTheme().colors.secondary}
+                    ></RatingSelector>
+                    <DurationPicker
+                        fromValue={
+                            activeEntryData.durationFrom === undefined
+                                ? new Date()
+                                : activeEntryData.durationFrom
+                        }
+                        fromHandler={(start: any) => {
+                            setDurationFrom(start);
+                        }}
+                        toValue={
+                            activeEntryData.durationTo === undefined
+                                ? new Date()
+                                : activeEntryData.durationTo
+                        }
+                        toHandler={(end: any) => {
+                            setDurationTo(end);
+                        }}
+                    ></DurationPicker>
+                    <TextInput
+                        mode="outlined"
+                        value={activeEntryData.desc}
+                        label={"Entry"}
+                        onChangeText={(text) => {
+                            setEntryDesc(text);
+                        }}
+                        numberOfLines={100}
+                        multiline={true}
+                        contentStyle={{ height: 400 }}
+                    ></TextInput>
+                    <FAB
+                        icon={"check"}
+                        onPress={() => {
+                            if (editingExistent) {
+                                props.onEntryChangeHandler({
+                                    ...activeEntryData,
+                                    toAdd: false,
+                                    toEdit: true,
+                                });
+                            } else {
+                                props.onEntryChangeHandler({
+                                    ...activeEntryData,
+                                    toAdd: true,
+                                });
+                            }
+                            setEditingActive(false);
+                        }}
+                    ></FAB>
+                </>
+            )) ||
+                (!editingActive && (
                     <>
-                        <TextInput
-                            mode="outlined"
-                            value={activeEntryData.title}
-                            onChangeText={(text) => {
-                                setEntryTitle(text);
+                        <PaperText
+                            variant="titleLarge"
+                            style={{
+                                fontWeight: "bold",
                             }}
-                            label={"Title"}
-                        ></TextInput>
-                        <RatingSelector
-                            ratingState={
-                                activeEntryData.rating === undefined
-                                    ? 0
-                                    : activeEntryData.rating
-                            }
-                            ratingHandler={(entryRating: number) => {
-                                setEntryRating(entryRating);
+                        >
+                            {activeEntryData.title}
+                        </PaperText>
+                        <PaperText
+                            style={{
+                                fontWeight: "thin",
+                                fontStyle: "italic",
+                                fontSize: 16,
                             }}
-                            starColor={getAdaptaiveTheme().colors.secondary}
-                        ></RatingSelector>
-                        <DurationPicker
-                            fromValue={
-                                activeEntryData.durationFrom === undefined
-                                    ? new Date()
-                                    : activeEntryData.durationFrom
-                            }
-                            fromHandler={(start: any) => {
-                                setDurationFrom(start);
+                        >
+                            {Array.from(
+                                {
+                                    length:
+                                        activeEntryData.rating === undefined
+                                            ? 0
+                                            : activeEntryData.rating,
+                                },
+                                (i, k) => k
+                            ).map((i, k) => "★")}
+                        </PaperText>
+                        <PaperText
+                            variant="titleSmall"
+                            style={{
+                                fontWeight: "thin",
+                                fontStyle: "italic",
                             }}
-                            toValue={
-                                activeEntryData.durationTo === undefined
-                                    ? new Date()
-                                    : activeEntryData.durationTo
-                            }
-                            toHandler={(end: any) => {
-                                setDurationTo(end);
-                            }}
-                        ></DurationPicker>
-                        <TextInput
-                            mode="outlined"
-                            value={activeEntryData.desc}
-                            label={"Entry"}
-                            onChangeText={(text) => {
-                                setEntryDesc(text);
-                            }}
-                            numberOfLines={100}
-                            multiline={true}
-                            contentStyle={{ height: 400 }}
-                        ></TextInput>
-                        <FAB
-                            icon={"check"}
-                            onPress={() => {
-                                if (editingExistent) {
-                                    props.onEntryChangeHandler({
-                                        ...activeEntryData,
-                                        toAdd: false,
-                                        toEdit: true,
-                                    });
-                                } else {
-                                    props.onEntryChangeHandler({
-                                        ...activeEntryData,
-                                        toAdd: true,
-                                    });
-                                }
-                                setEditingActive(false);
-                            }}
-                        ></FAB>
+                        >
+                            {activeEntryData.durationTime}
+                        </PaperText>
+                        <PaperText style={{ paddingVertical: 30 }}>
+                            {activeEntryData.desc}
+                        </PaperText>
                     </>
-                )) ||
-                    (!editingActive && (
-                        <>
-                            <PaperText
-                                variant="titleLarge"
-                                style={{
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                {activeEntryData.title}
-                            </PaperText>
-                            <PaperText
-                                style={{
-                                    fontWeight: "thin",
-                                    fontStyle: "italic",
-                                    fontSize: 16,
-                                }}
-                            >
-                                {Array.from(
-                                    {
-                                        length:
-                                            activeEntryData.rating === undefined
-                                                ? 0
-                                                : activeEntryData.rating,
-                                    },
-                                    (i, k) => k
-                                ).map((i, k) => "★")}
-                            </PaperText>
-                            <PaperText
-                                variant="titleSmall"
-                                style={{
-                                    fontWeight: "thin",
-                                    fontStyle: "italic",
-                                }}
-                            >
-                                {activeEntryData.durationTime}
-                            </PaperText>
-                            <PaperText style={{ paddingVertical: 30 }}>
-                                {activeEntryData.desc}
-                            </PaperText>
-                        </>
-                    ))}
-            </Card>
-        </PaperProvider>
+                ))}
+        </>
     );
 }
 
 const styles = StyleSheet.create({
-    expandedCard: {
-        flex: 1,
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        fontSize: 34,
-    },
     fab: {
         position: "absolute",
         margin: 16,
