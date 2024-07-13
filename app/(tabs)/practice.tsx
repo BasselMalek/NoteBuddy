@@ -12,53 +12,90 @@ import { getAdaptaiveTheme } from "@/constants/Colors";
 import { CalendarProvider, ExpandableCalendar } from "react-native-calendars";
 import { Theme as CalendarTheme } from "react-native-calendars/src/types";
 import * as SQL from "expo-sqlite";
+import { StripCalendar } from "@/components/StripCalendar";
 
 export default function Practice() {
-    const db = useRef<SQL.SQLiteDatabase | null>(null);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [loadedEntry, setLoadedEntry] = useState<EntryData | null>(null);
-    useEffect(() => {
-        try {
-            (async () => {
-                const conn = await SQL.openDatabaseAsync("PracticeEntries.db");
-                db.current = conn;
-                const retrieveStatment = await db.current.prepareAsync(
+    const [dbLoaded, setDbLoaded] = useState(false);
+    const CRUD = useRef<{
+        db: SQL.SQLiteDatabase;
+        retrieveStatement: SQL.SQLiteStatement;
+        createStatement: SQL.SQLiteStatement;
+        updateStatement: SQL.SQLiteStatement;
+    } | null>(null);
+    (async () => {
+        if (!dbLoaded) {
+            try {
+                const dbObj = await SQL.openDatabaseAsync("PracticeEntries.db");
+                const rtObj = await dbObj.prepareAsync(
                     "SELECT date, title, startTime, endTime, duration, rating, description FROM entries where date= $date"
                 );
-                const res = await retrieveStatment.executeAsync({
-                    $date: selectedDate
-                        .toISOString()
-                        .slice(0, 10)
-                        .replace("T", " "),
-                });
-                const spreadRes = await res.getFirstAsync();
+                // console.log("connected2");
+                const ctObj = await dbObj.prepareAsync(
+                    "INSERT INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                );
+                const utObj = await dbObj.prepareAsync(
+                    "UPDATE entries SET title = ?, startTime = ?, endTime = ?, duration = ?, rating = ?, description = ? WHERE date = ?"
+                );
+                CRUD.current = {
+                    db: dbObj,
+                    retrieveStatement: rtObj,
+                    createStatement: ctObj,
+                    updateStatement: utObj,
+                };
+                setDbLoaded(true);
+                console.log("connected");
+            } catch (error) {
+                console.log("tf");
+            }
+        }
+    })();
 
-                console.log(spreadRes);
-                if (spreadRes) {
-                    setLoadedEntry({
-                        date: new Date(spreadRes.date),
-                        title: spreadRes.title,
-                        durationTime: spreadRes.duration,
-                        durationFrom: new Date(
-                            `${spreadRes.date}T${spreadRes.startTime}`
-                        ),
-                        durationTo: new Date(
-                            `${spreadRes.date}T${spreadRes.endTime}`
-                        ),
-                        rating: spreadRes.rating,
-                        desc: spreadRes.description,
-                        toAdd: false,
-                    });
-                } else {
-                    setLoadedEntry(null);
-                }
-                console.log("this is " + loadedEntry?.desc);
+    const [selectedDate, setSelectedDate] = useState(new Date("2024-07-13"));
+    const [loadedEntry, setLoadedEntry] = useState<EntryData | null>(null);
 
-                res.resetAsync();
-            })();
-        } catch (e) {}
+    const mapResToEntry = (
+        // res: SQL.SQLiteExecuteAsyncResult<EntryData>
+        res: any
+    ) => {
+        setLoadedEntry({
+            date: new Date(res.date),
+            title: res.title,
+            durationTime: res.duration,
+            durationFrom: new Date(`${res.date}T${res.startTime}`),
+            durationTo: new Date(`${res.date}T${res.endTime}`),
+            rating: res.rating,
+            desc: res.description,
+            toAdd: false,
+        });
+    };
+
+    useEffect(() => {
+        if (CRUD.current != null) {
+            try {
+                (async () => {
+                    const rows =
+                        await CRUD.current!.retrieveStatement.executeAsync({
+                            $date: selectedDate
+                                .toISOString()
+                                .slice(0, 10)
+                                .replace("T", " "),
+                        });
+                    console.log("tried");
+
+                    const res = await rows.getFirstAsync();
+                    if (res) {
+                        mapResToEntry(res);
+                    } else {
+                        setLoadedEntry(null);
+                    }
+                    rows.resetAsync();
+                })();
+            } catch (e) {
+            } finally {
+            }
+        }
         return () => {};
-    }, [selectedDate]);
+    }, [selectedDate, CRUD.current]);
 
     const calTheme: CalendarTheme = {
         backgroundColor: getAdaptaiveTheme().colors.surface, // Maps to 'surface' from theme data
@@ -77,7 +114,7 @@ export default function Practice() {
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
             {/* <Card style={styles.card}> */}
-            <CalendarProvider
+            {/* <CalendarProvider
                 style={{ flex: 1, maxHeight: 122 }}
                 theme={calTheme}
                 date={selectedDate.toString()}
@@ -95,7 +132,8 @@ export default function Practice() {
                         setSelectedDate(new Date(day.dateString.slice(0, 10)));
                     }}
                 ></ExpandableCalendar>
-            </CalendarProvider>
+            </CalendarProvider> */}
+            <StripCalendar></StripCalendar>
             <View style={styles.rootContainer}>
                 {(loadedEntry === null && (
                     <>
@@ -108,6 +146,13 @@ export default function Practice() {
                                     date: selectedDate,
                                     toAdd: true,
                                 });
+                            }}
+                        ></FAB>
+                        <FAB
+                            icon={"star"}
+                            // style={styles.fab}
+                            onPress={() => {
+                                console.log(CRUD.current?.db);
                             }}
                         ></FAB>
                     </>
@@ -123,79 +168,77 @@ export default function Practice() {
                                 ) => {
                                     setLoadedEntry(newEntry);
                                     if (newEntry.toAdd) {
-                                        const createStatement =
-                                            await db.current.prepareAsync(
-                                                "INSERT INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                                            );
-                                        const rows =
-                                            await createStatement.executeAsync<{
-                                                date: Date;
-                                                title: string;
-                                                startTime: string;
-                                                endTime: Date;
-                                                duration: Date;
-                                                rating: number;
-                                                description: string;
-                                            }>(
-                                                loadedEntry.date
-                                                    .toISOString()
-                                                    .slice(0, 19)
-                                                    .replace("T", " "),
-                                                loadedEntry.title,
-                                                loadedEntry.durationFrom
-                                                    .toISOString()
-                                                    .slice(0, 19)
-                                                    .replace("T", " "),
-                                                loadedEntry.durationTo
-                                                    .toISOString()
-                                                    .slice(0, 19)
-                                                    .replace("T", " "),
-                                                loadedEntry.durationTime,
-                                                loadedEntry.rating,
-                                                loadedEntry.desc
-                                            );
-                                        const res = await rows.getFirstAsync();
-                                        setLoadedEntry({
-                                            ...res,
-                                            toAdd: false,
-                                        });
+                                        try {
+                                            const rows =
+                                                await CRUD.current!.createStatement.executeAsync<{
+                                                    date: Date;
+                                                    title: string;
+                                                    startTime: string;
+                                                    endTime: Date;
+                                                    duration: Date;
+                                                    rating: number;
+                                                    description: string;
+                                                }>(
+                                                    loadedEntry.date
+                                                        .toISOString()
+                                                        .slice(0, 19)
+                                                        .replace("T", " "),
+                                                    loadedEntry.title!,
+                                                    loadedEntry
+                                                        .durationFrom!.toISOString()
+                                                        .slice(0, 19)
+                                                        .replace("T", " "),
+                                                    loadedEntry
+                                                        .durationTo!.toISOString()
+                                                        .slice(0, 19)
+                                                        .replace("T", " "),
+                                                    loadedEntry.durationTime!,
+                                                    loadedEntry.rating!,
+                                                    loadedEntry.desc!
+                                                );
+                                            const res =
+                                                await rows.getFirstAsync();
+                                            mapResToEntry(res);
+                                        } catch (error) {
+                                        } finally {
+                                            CRUD.current!.createStatement.finalizeAsync();
+                                        }
                                     } else if (newEntry.toEdit === true) {
-                                        const updateStatement =
-                                            await db.current.prepareAsync(
-                                                "UPDATE entries SET title = ?, startTime = ?, endTime = ?, duration = ?, rating = ?, description = ? WHERE date = ?"
-                                            );
-                                        const rows =
-                                            await updateStatement.executeAsync<{
-                                                title: string;
-                                                startTime: string;
-                                                endTime: Date;
-                                                duration: Date;
-                                                rating: number;
-                                                description: string;
-                                                date: Date;
-                                            }>(
-                                                loadedEntry.title,
-                                                loadedEntry.durationFrom
-                                                    .toISOString()
-                                                    .slice(0, 19)
-                                                    .replace("T", " "),
-                                                loadedEntry.durationTo
-                                                    .toISOString()
-                                                    .slice(0, 19)
-                                                    .replace("T", " "),
-                                                loadedEntry.durationTime,
-                                                loadedEntry.rating,
-                                                loadedEntry.desc,
-                                                loadedEntry.date
-                                                    .toISOString()
-                                                    .slice(0, 19)
-                                                    .replace("T", " ")
-                                            );
-                                        const res = await rows.getFirstAsync();
-                                        setLoadedEntry({
-                                            ...res,
-                                            toAdd: false,
-                                        });
+                                        try {
+                                            const rows =
+                                                await CRUD.current!.updateStatement.executeAsync<{
+                                                    title: string;
+                                                    startTime: string;
+                                                    endTime: Date;
+                                                    duration: Date;
+                                                    rating: number;
+                                                    description: string;
+                                                    date: Date;
+                                                }>(
+                                                    loadedEntry.title!,
+                                                    loadedEntry
+                                                        .durationFrom!.toISOString()
+                                                        .slice(0, 19)
+                                                        .replace("T", " "),
+                                                    loadedEntry
+                                                        .durationTo!.toISOString()
+                                                        .slice(0, 19)
+                                                        .replace("T", " "),
+                                                    loadedEntry.durationTime!,
+                                                    loadedEntry.rating!,
+                                                    loadedEntry.desc!,
+                                                    loadedEntry.date
+                                                        .toISOString()
+                                                        .slice(0, 19)
+                                                        .replace("T", " ")
+                                                );
+                                            const res =
+                                                await rows.getFirstAsync();
+                                            mapResToEntry(res);
+                                        } catch (error) {
+                                        } finally {
+                                            CRUD.current!.updateStatement.finalizeAsync();
+                                        }
                                     }
                                 }}
                                 isExpanded={true}
