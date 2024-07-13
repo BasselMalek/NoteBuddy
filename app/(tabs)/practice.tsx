@@ -1,4 +1,4 @@
-import { View, Text, Button, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
     Card,
     Text as PaperText,
@@ -7,50 +7,47 @@ import {
     FAB,
 } from "react-native-paper";
 import { Entry, EntryData } from "@/components/Entry";
-import { useEffect, useState, Suspense, useRef } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { getAdaptaiveTheme } from "@/constants/Colors";
-import { CalendarProvider, ExpandableCalendar } from "react-native-calendars";
 import { Theme as CalendarTheme } from "react-native-calendars/src/types";
 import * as SQL from "expo-sqlite";
 import { StripCalendar } from "@/components/StripCalendar";
 
-export default function Practice() {
-    const [dbLoaded, setDbLoaded] = useState(false);
-    const CRUD = useRef<{
-        db: SQL.SQLiteDatabase;
-        retrieveStatement: SQL.SQLiteStatement;
-        createStatement: SQL.SQLiteStatement;
-        updateStatement: SQL.SQLiteStatement;
-    } | null>(null);
-    (async () => {
-        if (!dbLoaded) {
-            try {
-                const dbObj = await SQL.openDatabaseAsync("PracticeEntries.db");
-                const rtObj = await dbObj.prepareAsync(
-                    "SELECT date, title, startTime, endTime, duration, rating, description FROM entries where date= $date"
-                );
-                // console.log("connected2");
-                const ctObj = await dbObj.prepareAsync(
-                    "INSERT INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
-                );
-                const utObj = await dbObj.prepareAsync(
-                    "UPDATE entries SET title = ?, startTime = ?, endTime = ?, duration = ?, rating = ?, description = ? WHERE date = ?"
-                );
-                CRUD.current = {
-                    db: dbObj,
-                    retrieveStatement: rtObj,
-                    createStatement: ctObj,
-                    updateStatement: utObj,
-                };
-                setDbLoaded(true);
-                console.log("connected");
-            } catch (error) {
-                console.log("tf");
-            }
-        }
-    })();
+//! PERFORMANCE ON THIS IS ABHORENT. IN NEED OF PRELOADING/CACHING.
+//? Try React Queries
 
-    const [selectedDate, setSelectedDate] = useState(new Date("2024-07-13"));
+interface CRUDInterface {
+    db?: SQL.SQLiteDatabase;
+    retrieveStatement?: SQL.SQLiteStatement;
+    createStatement?: SQL.SQLiteStatement;
+    updateStatement?: SQL.SQLiteStatement;
+}
+
+let CRUD: CRUDInterface | null = null;
+
+(async () => {
+    try {
+        const db = await SQL.openDatabaseAsync("PracticeEntries.db");
+        CRUD = {
+            db,
+            retrieveStatement: await db.prepareAsync(
+                "SELECT date, title, startTime, endTime, duration, rating, description FROM entries where date= $date"
+            ),
+            createStatement: await db.prepareAsync(
+                "INSERT INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES (?, ?, ?, ?, ?, ?, ?)"
+            ),
+            updateStatement: await db.prepareAsync(
+                "UPDATE entries SET title = ?, startTime = ?, endTime = ?, duration = ?, rating = ?, description = ? WHERE date = ?"
+            ),
+        };
+        console.log("connected");
+    } catch (error) {
+        console.error("Error during database initialization:", error);
+    }
+})();
+
+export default function Practice() {
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [loadedEntry, setLoadedEntry] = useState<EntryData | null>(null);
 
     const mapResToEntry = (
@@ -70,18 +67,13 @@ export default function Practice() {
     };
 
     useEffect(() => {
-        if (CRUD.current != null) {
+        if (CRUD != null) {
             try {
                 (async () => {
-                    const rows =
-                        await CRUD.current!.retrieveStatement.executeAsync({
-                            $date: selectedDate
-                                .toISOString()
-                                .slice(0, 10)
-                                .replace("T", " "),
-                        });
+                    const rows = await CRUD!.retrieveStatement!.executeAsync({
+                        $date: selectedDate.toISOString().slice(0, 10),
+                    });
                     console.log("tried");
-
                     const res = await rows.getFirstAsync();
                     if (res) {
                         mapResToEntry(res);
@@ -95,7 +87,7 @@ export default function Practice() {
             }
         }
         return () => {};
-    }, [selectedDate, CRUD.current]);
+    }, [selectedDate, CRUD]);
 
     const calTheme: CalendarTheme = {
         backgroundColor: getAdaptaiveTheme().colors.surface, // Maps to 'surface' from theme data
@@ -113,138 +105,169 @@ export default function Practice() {
 
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
-            {/* <Card style={styles.card}> */}
-            {/* <CalendarProvider
-                style={{ flex: 1, maxHeight: 122 }}
-                theme={calTheme}
-                date={selectedDate.toString()}
-            >
-                <ExpandableCalendar
-                    theme={calTheme}
-                    markedDates={{ "2024-07-11": { marked: true } }}
-                    disableArrowLeft
-                    disableArrowRight
-                    maxDate={new Date().toString()}
-                    hideArrows
-                    disablePan
-                    hideKnob
-                    onDayPress={(day) => {
-                        setSelectedDate(new Date(day.dateString.slice(0, 10)));
-                    }}
-                ></ExpandableCalendar>
-            </CalendarProvider> */}
-            <StripCalendar></StripCalendar>
             <View style={styles.rootContainer}>
-                {(loadedEntry === null && (
-                    <>
-                        <PaperText>No entry for today. Add one?</PaperText>
-                        <FAB
-                            icon={"plus"}
-                            // style={styles.fab}
-                            onPress={() => {
-                                setLoadedEntry({
-                                    date: selectedDate,
-                                    toAdd: true,
-                                });
+                <Card style={styles.card}>
+                    <Card.Content style={{ height: 200 }}>
+                        <StripCalendar
+                            initialDate={selectedDate}
+                            OnDatePressHandler={(day: Date) => {
+                                setSelectedDate(day);
                             }}
-                        ></FAB>
-                        <FAB
-                            icon={"star"}
-                            // style={styles.fab}
-                            onPress={() => {
-                                console.log(CRUD.current?.db);
-                            }}
-                        ></FAB>
-                    </>
-                )) ||
-                    (loadedEntry != null && (
-                        <Suspense
-                            fallback={<ActivityIndicator></ActivityIndicator>}
-                        >
-                            <Entry
-                                entryData={loadedEntry}
-                                onEntryChangeHandler={async (
-                                    newEntry: EntryData
-                                ) => {
-                                    setLoadedEntry(newEntry);
-                                    if (newEntry.toAdd) {
-                                        try {
-                                            const rows =
-                                                await CRUD.current!.createStatement.executeAsync<{
-                                                    date: Date;
-                                                    title: string;
-                                                    startTime: string;
-                                                    endTime: Date;
-                                                    duration: Date;
-                                                    rating: number;
-                                                    description: string;
-                                                }>(
-                                                    loadedEntry.date
-                                                        .toISOString()
-                                                        .slice(0, 19)
-                                                        .replace("T", " "),
-                                                    loadedEntry.title!,
-                                                    loadedEntry
-                                                        .durationFrom!.toISOString()
-                                                        .slice(0, 19)
-                                                        .replace("T", " "),
-                                                    loadedEntry
-                                                        .durationTo!.toISOString()
-                                                        .slice(0, 19)
-                                                        .replace("T", " "),
-                                                    loadedEntry.durationTime!,
-                                                    loadedEntry.rating!,
-                                                    loadedEntry.desc!
-                                                );
-                                            const res =
-                                                await rows.getFirstAsync();
-                                            mapResToEntry(res);
-                                        } catch (error) {
-                                        } finally {
-                                            CRUD.current!.createStatement.finalizeAsync();
+                        ></StripCalendar>
+                    </Card.Content>
+                </Card>
+                <Card style={styles.expandedCard}>
+                    <Card.Content>
+                        <>
+                            {(loadedEntry === null && (
+                                <>
+                                    <PaperText>
+                                        No entry for today. Add one?
+                                    </PaperText>
+                                    <FAB
+                                        icon={"plus"}
+                                        // style={styles.fab}
+                                        onPress={() => {
+                                            setLoadedEntry({
+                                                date: selectedDate,
+                                                toAdd: true,
+                                            });
+                                        }}
+                                    ></FAB>
+                                    <FAB
+                                        icon={"star"}
+                                        // style={styles.fab}
+                                        onPress={() => {
+                                            console.log(CRUD?.db);
+                                        }}
+                                    ></FAB>
+                                </>
+                            )) ||
+                                (loadedEntry != null && (
+                                    <Suspense
+                                        fallback={
+                                            <ActivityIndicator></ActivityIndicator>
                                         }
-                                    } else if (newEntry.toEdit === true) {
-                                        try {
-                                            const rows =
-                                                await CRUD.current!.updateStatement.executeAsync<{
-                                                    title: string;
-                                                    startTime: string;
-                                                    endTime: Date;
-                                                    duration: Date;
-                                                    rating: number;
-                                                    description: string;
-                                                    date: Date;
-                                                }>(
-                                                    loadedEntry.title!,
-                                                    loadedEntry
-                                                        .durationFrom!.toISOString()
-                                                        .slice(0, 19)
-                                                        .replace("T", " "),
-                                                    loadedEntry
-                                                        .durationTo!.toISOString()
-                                                        .slice(0, 19)
-                                                        .replace("T", " "),
-                                                    loadedEntry.durationTime!,
-                                                    loadedEntry.rating!,
-                                                    loadedEntry.desc!,
-                                                    loadedEntry.date
-                                                        .toISOString()
-                                                        .slice(0, 19)
-                                                        .replace("T", " ")
-                                                );
-                                            const res =
-                                                await rows.getFirstAsync();
-                                            mapResToEntry(res);
-                                        } catch (error) {
-                                        } finally {
-                                            CRUD.current!.updateStatement.finalizeAsync();
-                                        }
-                                    }
-                                }}
-                                isExpanded={true}
-                            ></Entry>
-                        </Suspense>
-                    ))}
+                                    >
+                                        <Entry
+                                            entryData={loadedEntry}
+                                            onEntryChangeHandler={async (
+                                                newEntry: EntryData
+                                            ) => {
+                                                setLoadedEntry(newEntry);
+                                                if (newEntry.toAdd) {
+                                                    try {
+                                                        const rows =
+                                                            await CRUD!.createStatement?.executeAsync<{
+                                                                date: Date;
+                                                                title: string;
+                                                                startTime: string;
+                                                                endTime: Date;
+                                                                duration: Date;
+                                                                rating: number;
+                                                                description: string;
+                                                            }>(
+                                                                loadedEntry.date
+                                                                    .toISOString()
+                                                                    .slice(
+                                                                        0,
+                                                                        19
+                                                                    )
+                                                                    .replace(
+                                                                        "T",
+                                                                        " "
+                                                                    ),
+                                                                loadedEntry.title!,
+                                                                loadedEntry
+                                                                    .durationFrom!.toISOString()
+                                                                    .slice(
+                                                                        0,
+                                                                        19
+                                                                    )
+                                                                    .replace(
+                                                                        "T",
+                                                                        " "
+                                                                    ),
+                                                                loadedEntry
+                                                                    .durationTo!.toISOString()
+                                                                    .slice(
+                                                                        0,
+                                                                        19
+                                                                    )
+                                                                    .replace(
+                                                                        "T",
+                                                                        " "
+                                                                    ),
+                                                                loadedEntry.durationTime!,
+                                                                loadedEntry.rating!,
+                                                                loadedEntry.desc!
+                                                            );
+                                                        const res =
+                                                            await rows?.getFirstAsync();
+                                                        mapResToEntry(res);
+                                                    } catch (error) {}
+                                                } else if (
+                                                    newEntry.toEdit === true
+                                                ) {
+                                                    try {
+                                                        const rows =
+                                                            await CRUD!.updateStatement?.executeAsync<{
+                                                                title: string;
+                                                                startTime: string;
+                                                                endTime: Date;
+                                                                duration: Date;
+                                                                rating: number;
+                                                                description: string;
+                                                                date: Date;
+                                                            }>(
+                                                                loadedEntry.title!,
+                                                                loadedEntry
+                                                                    .durationFrom!.toISOString()
+                                                                    .slice(
+                                                                        0,
+                                                                        19
+                                                                    )
+                                                                    .replace(
+                                                                        "T",
+                                                                        " "
+                                                                    ),
+                                                                loadedEntry
+                                                                    .durationTo!.toISOString()
+                                                                    .slice(
+                                                                        0,
+                                                                        19
+                                                                    )
+                                                                    .replace(
+                                                                        "T",
+                                                                        " "
+                                                                    ),
+                                                                loadedEntry.durationTime!,
+                                                                loadedEntry.rating!,
+                                                                loadedEntry.desc!,
+                                                                loadedEntry.date
+                                                                    .toISOString()
+                                                                    .slice(
+                                                                        0,
+                                                                        19
+                                                                    )
+                                                                    .replace(
+                                                                        "T",
+                                                                        " "
+                                                                    )
+                                                            );
+                                                        const res =
+                                                            await rows?.getFirstAsync();
+                                                        mapResToEntry(res);
+                                                    } catch (error) {}
+                                                }
+                                            }}
+                                            isExpanded={true}
+                                        />
+                                    </Suspense>
+                                ))}
+                        </>
+                    </Card.Content>
+                </Card>
             </View>
         </PaperProvider>
     );
@@ -257,6 +280,7 @@ const styles = StyleSheet.create({
         padding: 7,
     },
     card: {
+        display: "flex",
         paddingHorizontal: 10,
         paddingVertical: 10,
         flex: 1,
@@ -266,5 +290,12 @@ const styles = StyleSheet.create({
         position: "absolute",
         margin: 16,
         right: -15,
+    },
+    expandedCard: {
+        display: "flex",
+        flex: 3,
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        fontSize: 34,
     },
 });
