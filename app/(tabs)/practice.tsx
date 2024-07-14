@@ -121,10 +121,15 @@ export default function Practice() {
                         <>
                             {(loadedEntry === null && (
                                 <>
-                                    <PaperText>
+                                    <PaperText style={{ textAlign: "center" }}>
                                         No entry for today. Add one?
                                     </PaperText>
                                     <FAB
+                                        style={{
+                                            position: "absolute",
+                                            top: 425,
+                                            right: 0,
+                                        }}
                                         icon={"plus"}
                                         // style={styles.fab}
                                         onPress={() => {
@@ -134,15 +139,9 @@ export default function Practice() {
                                             });
                                         }}
                                     ></FAB>
-                                    <FAB
-                                        icon={"star"}
-                                        // style={styles.fab}
-                                        onPress={() => {
-                                            console.log(CRUD?.db);
-                                        }}
-                                    ></FAB>
                                 </>
                             )) ||
+                                //TODO: The loading indicator here doesn't work because loading isn't communicated to app state. Fix that.
                                 (loadedEntry != null && (
                                     <Suspense
                                         fallback={
