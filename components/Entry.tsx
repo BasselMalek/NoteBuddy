@@ -8,213 +8,219 @@ import {
     TextInput,
 } from "react-native-paper";
 import { getAdaptaiveTheme } from "@/constants/Colors";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useReducer } from "react";
 import RatingSelector from "@/components/RatingSelector";
 
 interface EntryData {
     date: Date;
-    title?: string;
-    durationTime?: string;
-    durationFrom?: Date;
-    durationTo?: Date;
-    rating?: number;
-    desc?: string;
-    toAdd: boolean;
-    toEdit?: boolean;
+    title: string;
+    durationTime: string;
+    durationFrom: Date;
+    durationTo: Date;
+    rating: number;
+    desc: string;
+    submit?: boolean;
+    submitAction?: "add" | "update";
 }
 
+const entryReducer = (state: any, action: { type: any; payload: any }) => {
+    switch (action.type) {
+        case "UPDATE":
+            return { ...action.payload };
+        case "SET_TITLE":
+            return { ...state, title: action.payload };
+        case "SET_RATING":
+            return { ...state, rating: action.payload };
+        case "SET_DESC":
+            return { ...state, desc: action.payload };
+        case "SET_DURATION_FROM":
+            return { ...state, durationFrom: action.payload };
+        case "SET_DURATION_TO":
+            return { ...state, durationTo: action.payload };
+        case "SET_DURATION_TIME":
+            return { ...state, durationTime: action.payload };
+        case "SET_SUBMIT":
+            return { ...state, submit: action.payload };
+        default:
+            return state;
+    }
+};
+
 function Entry(props: {
-    isExpanded: boolean;
     style?: StyleProp<View>;
     entryData: EntryData;
     onEntryChangeHandler: Function;
 }) {
-    const [editingActive, setEditingActive] = useState(props.entryData.toAdd);
-    const [editingExistent, setEditingExistent] = useState(
-        !(props.entryData.title === undefined)
-    );
+    const [editingActive, setEditingActive] = useState(false);
+    const [entryState, entryDispatch] = useReducer(entryReducer, {}, (arg) => ({
+        ...props.entryData,
+    }));
 
-    const [activeEntryData, setActiveEntryData] = useState({
-        title: props.entryData?.title,
-        rating: props.entryData?.rating,
-        desc: props.entryData?.desc,
-        durationFrom: props.entryData.durationFrom,
-        durationTo: props.entryData.durationTo,
-        durationTime: props.entryData.durationTime,
-    });
-
-    const setEntryTitle = (title: string) => {
-        setActiveEntryData((prevState) => ({
-            ...prevState,
-            title,
-        }));
-    };
-
-    const setEntryRating = (rating: number) => {
-        setActiveEntryData((prevState) => ({
-            ...prevState,
-            rating,
-        }));
-    };
-
-    const setEntryDesc = (desc: string) => {
-        setActiveEntryData((prevState) => ({
-            ...prevState,
-            desc,
-        }));
-    };
-
-    const setDurationFrom = (durationFrom: Date) => {
-        setActiveEntryData((prevState) => ({
-            ...prevState,
-            durationFrom,
-        }));
-    };
-
-    const setDurationTo = (durationTo: Date) => {
-        setActiveEntryData((prevState) => ({
-            ...prevState,
-            durationTo,
-        }));
-    };
-
-    const setEntryDuration = (durationTime: string) => {
-        setActiveEntryData((prevState) => ({
-            ...prevState,
-            durationTime,
-        }));
-    };
+    useEffect(() => {
+        entryDispatch({ type: "UPDATE", payload: props.entryData });
+        return () => {};
+    }, [props]);
 
     useEffect(() => {
         const m =
-            (activeEntryData.durationTo === undefined
+            (entryState.durationTo === undefined
                 ? new Date().valueOf()
-                : activeEntryData.durationTo.valueOf() -
-                  (activeEntryData.durationFrom === undefined
+                : entryState.durationTo.valueOf() -
+                  (entryState.durationFrom === undefined
                       ? new Date().valueOf()
-                      : activeEntryData.durationFrom.valueOf())) /
+                      : entryState.durationFrom.valueOf())) /
             1000 /
             60;
         const hr = Math.floor(m / 60);
-        setEntryDuration(hr + "hrs " + (m - hr * 60) + "m");
+        entryDispatch({
+            type: "SET_DURATION_TIME",
+            payload: hr + "hrs " + (m - hr * 60) + "m",
+        });
         return () => {};
-    }, [activeEntryData.durationFrom, activeEntryData.durationTo]);
+    }, [entryState.durationFrom, entryState.durationTo]);
 
-    return (
-        <>
-            {(editingActive && (
+    if (editingActive) {
+        return (
+            <>
+                <TextInput
+                    mode="outlined"
+                    value={entryState.title}
+                    onChangeText={(text) => {
+                        entryDispatch({ type: "SET_TITLE", payload: text });
+                    }}
+                    label={"Title"}
+                ></TextInput>
+                <RatingSelector
+                    ratingState={
+                        entryState.rating === undefined ? 0 : entryState.rating
+                    }
+                    ratingHandler={(entryRating: number) => {
+                        entryDispatch({
+                            type: "SET_RATING",
+                            payload: entryRating,
+                        });
+                    }}
+                    starColor={getAdaptaiveTheme().colors.secondary}
+                ></RatingSelector>
+                <DurationPicker
+                    fromValue={
+                        entryState.durationFrom === undefined
+                            ? new Date()
+                            : entryState.durationFrom
+                    }
+                    fromHandler={(start: any) => {
+                        entryDispatch({
+                            type: "SET_DURATION_FROM",
+                            payload: start,
+                        });
+                    }}
+                    toValue={
+                        entryState.durationTo === undefined
+                            ? new Date()
+                            : entryState.durationTo
+                    }
+                    toHandler={(end: any) => {
+                        entryDispatch({
+                            type: "SET_DURATION_TO",
+                            payload: end,
+                        });
+                    }}
+                ></DurationPicker>
+                <TextInput
+                    mode="outlined"
+                    value={entryState.desc}
+                    label={"Entry"}
+                    onChangeText={(text) => {
+                        entryDispatch({
+                            type: "SET_DESC",
+                            payload: text,
+                        });
+                    }}
+                    numberOfLines={100}
+                    multiline={true}
+                    contentStyle={{ height: 400 }}
+                ></TextInput>
+                <FAB
+                    icon={"check"}
+                    onPress={() => {
+                        setEditingActive(false);
+                        entryDispatch({ type: "SET_SUBMIT", payload: true });
+                    }}
+                ></FAB>
+            </>
+        );
+    } else {
+        console.log(entryState);
+
+        if (props.entryData.submitAction != "add") {
+            return (
                 <>
-                    <TextInput
-                        mode="outlined"
-                        value={activeEntryData.title}
-                        onChangeText={(text) => {
-                            setEntryTitle(text);
+                    <PaperText
+                        variant="titleLarge"
+                        style={{
+                            fontWeight: "bold",
                         }}
-                        label={"Title"}
-                    ></TextInput>
-                    <RatingSelector
-                        ratingState={
-                            activeEntryData.rating === undefined
-                                ? 0
-                                : activeEntryData.rating
-                        }
-                        ratingHandler={(entryRating: number) => {
-                            setEntryRating(entryRating);
+                    >
+                        {entryState.title}
+                    </PaperText>
+                    <PaperText
+                        style={{
+                            fontWeight: "thin",
+                            fontStyle: "italic",
+                            fontSize: 16,
                         }}
-                        starColor={getAdaptaiveTheme().colors.secondary}
-                    ></RatingSelector>
-                    <DurationPicker
-                        fromValue={
-                            activeEntryData.durationFrom === undefined
-                                ? new Date()
-                                : activeEntryData.durationFrom
-                        }
-                        fromHandler={(start: any) => {
-                            setDurationFrom(start);
+                    >
+                        {Array.from(
+                            {
+                                length:
+                                    entryState.rating === undefined
+                                        ? 0
+                                        : entryState.rating,
+                            },
+                            (i, k) => k
+                        ).map((i, k) => "★")}
+                    </PaperText>
+                    <PaperText
+                        variant="titleSmall"
+                        style={{
+                            fontWeight: "thin",
+                            fontStyle: "italic",
                         }}
-                        toValue={
-                            activeEntryData.durationTo === undefined
-                                ? new Date()
-                                : activeEntryData.durationTo
-                        }
-                        toHandler={(end: any) => {
-                            setDurationTo(end);
-                        }}
-                    ></DurationPicker>
-                    <TextInput
-                        mode="outlined"
-                        value={activeEntryData.desc}
-                        label={"Entry"}
-                        onChangeText={(text) => {
-                            setEntryDesc(text);
-                        }}
-                        numberOfLines={100}
-                        multiline={true}
-                        contentStyle={{ height: 400 }}
-                    ></TextInput>
+                    >
+                        {entryState.durationTime}
+                    </PaperText>
+                    <PaperText style={{ paddingVertical: 30 }}>
+                        {entryState.desc}
+                    </PaperText>
                     <FAB
                         icon={"check"}
                         onPress={() => {
-                            if (editingExistent) {
-                                props.onEntryChangeHandler({
-                                    ...activeEntryData,
-                                    toAdd: false,
-                                    toEdit: true,
-                                });
-                            } else {
-                                props.onEntryChangeHandler({
-                                    ...activeEntryData,
-                                    toAdd: true,
-                                });
-                            }
-                            setEditingActive(false);
+                            setEditingActive(true);
                         }}
                     ></FAB>
                 </>
-            )) ||
-                (!editingActive && (
-                    <>
-                        <PaperText
-                            variant="titleLarge"
-                            style={{
-                                fontWeight: "bold",
-                            }}
-                        >
-                            {activeEntryData.title}
-                        </PaperText>
-                        <PaperText
-                            style={{
-                                fontWeight: "thin",
-                                fontStyle: "italic",
-                                fontSize: 16,
-                            }}
-                        >
-                            {Array.from(
-                                {
-                                    length:
-                                        activeEntryData.rating === undefined
-                                            ? 0
-                                            : activeEntryData.rating,
-                                },
-                                (i, k) => k
-                            ).map((i, k) => "★")}
-                        </PaperText>
-                        <PaperText
-                            variant="titleSmall"
-                            style={{
-                                fontWeight: "thin",
-                                fontStyle: "italic",
-                            }}
-                        >
-                            {activeEntryData.durationTime}
-                        </PaperText>
-                        <PaperText style={{ paddingVertical: 30 }}>
-                            {activeEntryData.desc}
-                        </PaperText>
-                    </>
-                ))}
-        </>
-    );
+            );
+        } else {
+            return (
+                <>
+                    <PaperText style={{ textAlign: "center" }}>
+                        No entry for today. Add one?
+                    </PaperText>
+                    <FAB
+                        style={{
+                            position: "absolute",
+                            top: 425,
+                            right: 0,
+                        }}
+                        icon={"plus"}
+                        onPress={() => {
+                            setEditingActive(true);
+                        }}
+                    ></FAB>
+                </>
+            );
+        }
+    }
 }
 
 const styles = StyleSheet.create({

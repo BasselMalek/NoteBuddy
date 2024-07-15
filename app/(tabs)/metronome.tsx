@@ -42,153 +42,154 @@ export default function Metronome() {
 
     const activeLongPressInterval = useRef<NodeJS.Timeout>();
 
-    return (
-        <PaperProvider theme={getAdaptaiveTheme()}>
-            <StatusBar style="auto"></StatusBar>
-            <View style={style.container}>
-                {
-                    //Metronome Ticker
-                }
-                <Card
-                    style={{
-                        ...style.card,
-                        flex: 4,
-                        marginBottom: 7,
-                        justifyContent: "center",
-                        alignContent: "center",
-                    }}
-                >
-                    <Ticker
-                        bpm={currentBpm}
-                        metronomeStatus={isMetronomePlaying}
-                        beats={currentTimeSignature.beats}
-                        sourceColor={getAdaptaiveTheme().colors.secondary}
-                        targetColor={getAdaptaiveTheme().colors.tertiary}
-                    ></Ticker>
-                    <FAB
-                        icon={isMetronomePlaying ? "pause" : "play"}
-                        mode="elevated"
-                        style={{ marginRight: 0, alignSelf: "center" }}
-                        onPress={async () => {
-                            if (isMetronomePlaying) {
-                                MetronomeModule.stop();
-                                setIsMetronomePlaying(!isMetronomePlaying);
-                            } else {
-                                setIsMetronomePlaying(!isMetronomePlaying);
-                                MetronomeModule.play(currentBpm);
-                            }
-                        }}
-                    />
-                </Card>
-                {
-                    //Options Selector
-                }
-                <Card
-                    style={{
-                        ...style.card,
-                        flex: 1,
-                        alignItems: "center",
-                        alignContent: "center",
-                    }}
-                >
-                    <View style={{ flexDirection: "row", gap: 15, margin: 20 }}>
-                        <Chip
-                            onPress={() => {
-                                setCurrentTimeSignature({
-                                    beats: 2,
-                                    beatValue: 4,
-                                });
-                            }}
-                        >
-                            2/4
-                        </Chip>
-                        <Chip
-                            onPress={() => {
-                                setCurrentTimeSignature({
-                                    beats: 3,
-                                    beatValue: 4,
-                                });
-                            }}
-                        >
-                            3/4
-                        </Chip>
-                        <Chip
-                            onPress={() => {
-                                setCurrentTimeSignature({
-                                    beats: 4,
-                                    beatValue: 4,
-                                });
-                            }}
-                        >
-                            4/4
-                        </Chip>
-                        <Chip
-                            onPress={() => {
-                                setCurrentTimeSignature({
-                                    beats: 6,
-                                    beatValue: 8,
-                                });
-                            }}
-                        >
-                            6/8
-                        </Chip>
-                    </View>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            gap: 15,
-                            justifyContent: "center",
-                        }}
-                    >
-                        <PaperButton
-                            mode="outlined"
-                            onPress={() => {
-                                setCurrentBpm(-1);
-                            }}
-                            onLongPress={() => {
-                                activeLongPressInterval.current = setInterval(
-                                    () => {
-                                        setCurrentBpm(-10);
-                                    },
-                                    100
-                                );
-                            }}
-                            onPressOut={() => {
-                                clearInterval(activeLongPressInterval.current);
-                            }}
-                        >
-                            <MaterialCommunityIcons name="minus"></MaterialCommunityIcons>
-                        </PaperButton>
-                        <Chip style={{ justifyContent: "center" }}>
-                            {/* //TODO(1): turn this into a text input field to
-                                enter an exact BPM.*/}
+    // // return (
+    // //     <PaperProvider theme={getAdaptaiveTheme()}>
+    // //         <StatusBar style="auto"></StatusBar>
+    // //         {/* <View style={style.container}>
+    // //             {
+    // //                 Metronome Ticker
+    // //             }
+    // //             <Card
+    // //                 style={{
+    // //                     ...style.card,
+    // //                     flex: 4,
+    // //                     marginBottom: 7,
+    // //                     justifyContent: "center",
+    // //                     alignContent: "center",
+    // //                 }}
+    // //             >
+    // //                 <Ticker
+    // //                     bpm={currentBpm}
+    // //                     metronomeStatus={isMetronomePlaying}
+    // //                     beats={currentTimeSignature.beats}
+    // //                     sourceColor={getAdaptaiveTheme().colors.secondary}
+    // //                     targetColor={getAdaptaiveTheme().colors.tertiary}
+    // //                 ></Ticker>
+    // //                 <FAB
+    // //                     icon={isMetronomePlaying ? "pause" : "play"}
+    // //                     mode="elevated"
+    // //                     style={{ marginRight: 0, alignSelf: "center" }}
+    // //                     onPress={async () => {
+    // //                         if (isMetronomePlaying) {
+    // //                             MetronomeModule.stop();
+    // //                             setIsMetronomePlaying(!isMetronomePlaying);
+    // //                         } else {
+    // //                             setIsMetronomePlaying(!isMetronomePlaying);
+    // //                             MetronomeModule.play(currentBpm);
+    // //                         }
+    // //                     }}
+    // //                 />
+    // //             </Card>
+    // //             {
+    // //                 Options Selector
+    // //             }
+    // //             <Card
+    // //                 style={{
+    // //                     ...style.card,
+    // //                     flex: 1,
+    // //                     alignItems: "center",
+    // //                     alignContent: "center",
+    // //                 }}
+    // //             >
+    // //                 <View style={{ flexDirection: "row", gap: 15, margin: 20 }}>
+    // //                     <Chip
+    // //                         onPress={() => {
+    // //                             setCurrentTimeSignature({
+    // //                                 beats: 2,
+    // //                                 beatValue: 4,
+    // //                             });
+    // //                         }}
+    // //                     >
+    // //                         2/4
+    // //                     </Chip>
+    // //                     <Chip
+    // //                         onPress={() => {
+    // //                             setCurrentTimeSignature({
+    // //                                 beats: 3,
+    // //                                 beatValue: 4,
+    // //                             });
+    // //                         }}
+    // //                     >
+    // //                         3/4
+    // //                     </Chip>
+    // //                     <Chip
+    // //                         onPress={() => {
+    // //                             setCurrentTimeSignature({
+    // //                                 beats: 4,
+    // //                                 beatValue: 4,
+    // //                             });
+    // //                         }}
+    // //                     >
+    // //                         4/4
+    // //                     </Chip>
+    // //                     <Chip
+    // //                         onPress={() => {
+    // //                             setCurrentTimeSignature({
+    // //                                 beats: 6,
+    // //                                 beatValue: 8,
+    // //                             });
+    // //                         }}
+    // //                     >
+    // //                         6/8
+    // //                     </Chip>
+    // //                 </View>
+    // //                 <View
+    // //                     style={{
+    // //                         flexDirection: "row",
+    // //                         gap: 15,
+    // //                         justifyContent: "center",
+    // //                     }}
+    // //                 >
+    // //                     <PaperButton
+    // //                         mode="outlined"
+    // //                         onPress={() => {
+    // //                             setCurrentBpm(-1);
+    // //                         }}
+    // //                         onLongPress={() => {
+    // //                             activeLongPressInterval.current = setInterval(
+    // //                                 () => {
+    // //                                     setCurrentBpm(-10);
+    // //                                 },
+    // //                                 100
+    // //                             );
+    // //                         }}
+    // //                         onPressOut={() => {
+    // //                             clearInterval(activeLongPressInterval.current);
+    // //                         }}
+    // //                     >
+    // //                         <MaterialCommunityIcons name="minus"></MaterialCommunityIcons>
+    // //                     </PaperButton>
+    // //                     <Chip style={{ justifyContent: "center" }}>
+    // //                         {/* //TODO(1): turn this into a text input field to
+    // //                             enter an exact BPM.*/}
 
-                            {currentBpm}
-                        </Chip>
-                        <PaperButton
-                            mode="outlined"
-                            onPress={() => {
-                                setCurrentBpm(1);
-                            }}
-                            onLongPress={() => {
-                                activeLongPressInterval.current = setInterval(
-                                    () => {
-                                        setCurrentBpm(10);
-                                    },
-                                    100
-                                );
-                            }}
-                            onPressOut={() => {
-                                clearInterval(activeLongPressInterval.current);
-                            }}
-                        >
-                            <MaterialCommunityIcons name="plus"></MaterialCommunityIcons>
-                        </PaperButton>
-                    </View>
-                </Card>
-            </View>
-        </PaperProvider>
-    );
+    // //                         {currentBpm}
+    // //                     </Chip>
+    // //                     <PaperButton
+    // //                         mode="outlined"
+    // //                         onPress={() => {
+    // //                             setCurrentBpm(1);
+    // //                         }}
+    // //                         onLongPress={() => {
+    // //                             activeLongPressInterval.current = setInterval(
+    // //                                 () => {
+    // //                                     setCurrentBpm(10);
+    // //                                 },
+    // //                                 100
+    // //                             );
+    // //                         }}
+    // //                         onPressOut={() => {
+    // //                             clearInterval(activeLongPressInterval.current);
+    // //                         }}
+    // //                     >
+    // //                         <MaterialCommunityIcons name="plus"></MaterialCommunityIcons>
+    // //                     </PaperButton>
+    // //                 </View> */}
+    // //             </Card>
+    // //         </View>
+    // //     </PaperProvider>
+    // // );
+    return <PaperText>Rebuild</PaperText>;
 }
 
 const style = StyleSheet.create({
