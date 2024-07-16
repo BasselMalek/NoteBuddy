@@ -15,7 +15,7 @@ import { useState } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 const queryClient = new QueryClient({
-    defaultOptions: { queries: { staleTime: 100000 } },
+    defaultOptions: { queries: { staleTime: 10000 } },
 });
 
 export default function RootLayout() {
