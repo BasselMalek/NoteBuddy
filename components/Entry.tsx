@@ -1,14 +1,13 @@
-import { View, StyleProp, StyleSheet } from "react-native";
-import DurationPicker from "@/components/DurationPicker";
+import { useState, useEffect, useReducer } from "react";
+import { View, StyleProp, StyleSheet, ScrollView } from "react-native";
+import { getAdaptaiveTheme } from "@/constants/Colors";
 import {
-    PaperProvider,
     Text as PaperText,
-    Card,
     FAB,
     TextInput,
+    Button as PaperButton,
 } from "react-native-paper";
-import { getAdaptaiveTheme } from "@/constants/Colors";
-import { useState, useEffect, useReducer } from "react";
+import DurationPicker from "@/components/DurationPicker";
 import RatingSelector from "@/components/RatingSelector";
 
 interface EntryData {
@@ -51,13 +50,18 @@ function Entry(props: {
     entryData: EntryData;
     onEntryChangeHandler: Function;
 }) {
+    const themedStars = getAdaptaiveTheme().colors.secondary;
     const [editingActive, setEditingActive] = useState(false);
     const [entryState, entryDispatch] = useReducer(entryReducer, {}, (arg) => ({
+        ...props.entryData,
+    }));
+    const [editState, editDispatch] = useReducer(entryReducer, {}, (arg) => ({
         ...props.entryData,
     }));
 
     useEffect(() => {
         entryDispatch({ type: "UPDATE", payload: props.entryData });
+        editDispatch({ type: "UPDATE", payload: props.entryData });
         return () => {};
     }, [props]);
 
@@ -72,55 +76,56 @@ function Entry(props: {
             1000 /
             60;
         const hr = Math.floor(m / 60);
-        entryDispatch({
+        editDispatch({
             type: "SET_DURATION_TIME",
             payload: hr + "hrs " + (m - hr * 60) + "m",
         });
         return () => {};
-    }, [entryState.durationFrom, entryState.durationTo]);
+    }, [editState.durationFrom, editState.durationTo]);
 
     if (editingActive) {
         return (
-            <>
+            <ScrollView>
                 <TextInput
                     mode="outlined"
-                    value={entryState.title}
+                    value={editState.title}
                     onChangeText={(text) => {
-                        entryDispatch({ type: "SET_TITLE", payload: text });
+                        editDispatch({ type: "SET_TITLE", payload: text });
                     }}
                     label={"Title"}
                 ></TextInput>
                 <RatingSelector
                     ratingState={
-                        entryState.rating === undefined ? 0 : entryState.rating
+                        editState.rating === undefined ? 0 : editState.rating
                     }
                     ratingHandler={(entryRating: number) => {
-                        entryDispatch({
+                        editDispatch({
                             type: "SET_RATING",
                             payload: entryRating,
                         });
                     }}
-                    starColor={getAdaptaiveTheme().colors.secondary}
+                    starColor={themedStars}
                 ></RatingSelector>
+                {/*//! AM/PM causing negatives, either fix it in the calc or change local (IOS won't work) */}
                 <DurationPicker
                     fromValue={
-                        entryState.durationFrom === undefined
-                            ? new Date()
-                            : entryState.durationFrom
+                        editState.durationFrom === undefined
+                            ? new Date(editState.date)
+                            : editState.durationFrom
                     }
                     fromHandler={(start: any) => {
-                        entryDispatch({
+                        editDispatch({
                             type: "SET_DURATION_FROM",
                             payload: start,
                         });
                     }}
                     toValue={
-                        entryState.durationTo === undefined
-                            ? new Date()
-                            : entryState.durationTo
+                        editState.durationTo === undefined
+                            ? new Date(editState.date)
+                            : editState.durationTo
                     }
                     toHandler={(end: any) => {
-                        entryDispatch({
+                        editDispatch({
                             type: "SET_DURATION_TO",
                             payload: end,
                         });
@@ -128,10 +133,10 @@ function Entry(props: {
                 ></DurationPicker>
                 <TextInput
                     mode="outlined"
-                    value={entryState.desc}
+                    value={editState.desc}
                     label={"Entry"}
                     onChangeText={(text) => {
-                        entryDispatch({
+                        editDispatch({
                             type: "SET_DESC",
                             payload: text,
                         });
@@ -142,16 +147,23 @@ function Entry(props: {
                 ></TextInput>
                 <FAB
                     icon={"check"}
+                    style={styles.fab}
                     onPress={() => {
+                        props.onEntryChangeHandler(editState);
                         setEditingActive(false);
-                        entryDispatch({ type: "SET_SUBMIT", payload: true });
                     }}
                 ></FAB>
-            </>
+                <PaperButton
+                    onPress={() => {
+                        editDispatch({ type: "UPDATE", payload: entryState });
+                        setEditingActive(false);
+                    }}
+                >
+                    Cancel
+                </PaperButton>
+            </ScrollView>
         );
     } else {
-        console.log(entryState);
-
         if (props.entryData.submitAction != "add") {
             return (
                 <>
@@ -193,8 +205,10 @@ function Entry(props: {
                         {entryState.desc}
                     </PaperText>
                     <FAB
-                        icon={"check"}
+                        icon={"pencil"}
+                        style={styles.fab}
                         onPress={() => {
+                            editDispatch({ type: "SET_SUBMIT", payload: true });
                             setEditingActive(true);
                         }}
                     ></FAB>
@@ -207,13 +221,10 @@ function Entry(props: {
                         No entry for today. Add one?
                     </PaperText>
                     <FAB
-                        style={{
-                            position: "absolute",
-                            top: 425,
-                            right: 0,
-                        }}
+                        style={styles.fab}
                         icon={"plus"}
                         onPress={() => {
+                            editDispatch({ type: "SET_SUBMIT", payload: true });
                             setEditingActive(true);
                         }}
                     ></FAB>
@@ -226,9 +237,8 @@ function Entry(props: {
 const styles = StyleSheet.create({
     fab: {
         position: "absolute",
-        margin: 16,
-        right: -15,
-        top: 600,
+        top: 425,
+        right: 0,
     },
 });
 
