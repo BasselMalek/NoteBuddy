@@ -23,8 +23,8 @@
 >
 > #### Practice Tracking
 >
-> - [ ] Build custom entry component.
+> - [x] Build custom entry component.
 > - [ ] Calendar selector.
 > - [ ] Pts algorithm.
 > - [ ] Stat tracking.
-> - [ ] DB integeration.
+> - [x] DB integeration.
