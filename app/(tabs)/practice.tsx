@@ -134,7 +134,7 @@ export default function Practice() {
         <PaperProvider theme={getAdaptaiveTheme()}>
             {/* //! Replace with custom component because this one's PERFORMANCE IS
             //! ABHORENT TOO! */}
-            {/* <CalendarProvider
+            <CalendarProvider
                 style={{ flex: 1, maxHeight: 120 }}
                 theme={calTheme}
                 date={selectedDate.toString()}
@@ -157,19 +157,19 @@ export default function Practice() {
                     disableIntervalMomentum
                     disableAllTouchEventsForInactiveDays
                 ></ExpandableCalendar>
-            </CalendarProvider> */}
+            </CalendarProvider>
 
             <View style={styles.rootContainer}>
-                <Card style={styles.calendarCard}>
+                {/* <Card style={styles.calendarCard}>
                     <Card.Content style={{ height: 200, paddingTop: 0 }}>
-                        <Calendar
+                        <StripCalendar
                             calendarMonthId={toDateId(selectedDate)}
                             onCalendarDayPress={(day) => {
                                 setSelectedDate(new Date(day));
                             }}
-                        ></Calendar>
+                        ></StripCalendar>
                     </Card.Content>
-                </Card>
+                </Card> */}
                 <Card style={styles.expandedCard}>
                     <Card.Content>
                         {/* //TODO: The loading indicator here doesn't work because

@@ -142,16 +142,18 @@ function Entry(props: {
                     }}
                     numberOfLines={100}
                     multiline={true}
-                    contentStyle={{ height: 400 }}
+                    contentStyle={{ height: 350 }}
                 ></TextInput>
-                <FAB
-                    icon={"check"}
-                    style={styles.fab}
+                <PaperButton
+                    // icon={"check"}
+                    style={{ marginTop: 10 }}
                     onPress={() => {
                         props.onEntryChangeHandler(editState);
                         setEditingActive(false);
                     }}
-                ></FAB>
+                >
+                    Submit
+                </PaperButton>
                 <PaperButton
                     onPress={() => {
                         editDispatch({ type: "UPDATE", payload: entryState });
@@ -183,10 +185,7 @@ function Entry(props: {
                     >
                         {Array.from(
                             {
-                                length:
-                                    entryState.rating === undefined
-                                        ? 0
-                                        : entryState.rating,
+                                length: entryState.rating,
                             },
                             (i, k) => k
                         ).map((i, k) => "★")}
@@ -236,7 +235,7 @@ function Entry(props: {
 const styles = StyleSheet.create({
     fab: {
         position: "absolute",
-        top: 425,
+        top: 500,
         right: 0,
     },
 });
