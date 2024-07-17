@@ -66,16 +66,15 @@ function Entry(props: {
     }, [props]);
 
     useEffect(() => {
-        const m =
-            (entryState.durationTo === undefined
-                ? new Date().valueOf()
-                : entryState.durationTo.valueOf() -
-                  (entryState.durationFrom === undefined
-                      ? new Date().valueOf()
-                      : entryState.durationFrom.valueOf())) /
-            1000 /
-            60;
+        const m = Math.round(
+            (editState.durationTo.valueOf() -
+                editState.durationFrom.valueOf()) /
+                1000 /
+                60
+        );
         const hr = Math.floor(m / 60);
+        console.log(hr + "hrs " + (m - hr * 60) + "m");
+
         editDispatch({
             type: "SET_DURATION_TIME",
             payload: hr + "hrs " + (m - hr * 60) + "m",
