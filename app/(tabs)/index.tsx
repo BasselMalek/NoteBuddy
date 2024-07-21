@@ -1,33 +1,12 @@
 import { useState } from "react";
-import {
-    View,
-    ScrollView,
-    Text,
-    Button,
-    StyleSheet,
-    Platform,
-    Pressable,
-    Appearance,
-    useColorScheme,
-    TouchableOpacity,
-} from "react-native";
+import { View, StyleSheet } from "react-native";
 import { PitchDetector } from "react-native-pitch-detector";
 import { StatusBar } from "expo-status-bar";
 import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import calcMidi from "@/constants/MidiNotes";
-import {
-    PaperProvider,
-    Button as PaperButton,
-    FAB,
-    Text as PaperText,
-    Switch,
-    Card,
-    MD3DarkTheme as DefaultDark,
-    MD3LightTheme as DefaultLight,
-} from "react-native-paper";
-import { Svg, Circle } from "react-native-svg";
+import { PaperProvider, FAB, Text as PaperText } from "react-native-paper";
 import { getAdaptaiveTheme, LightTheme, DarkTheme } from "@/constants/Colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SQL from "expo-sqlite";
@@ -75,6 +54,7 @@ export default function index() {
         PitchDetector.stop();
         setisRecording(await PitchDetector.isRecording());
         PitchDetector.removeAllListeners();
+        setFill(0);
     }
 
     return (
@@ -85,7 +65,7 @@ export default function index() {
                     size={32}
                     name="music-note"
                     color={
-                        fill > 45 && fill < 55
+                        fill > 47 && fill < 53
                             ? getAdaptaiveTheme().colors.tertiary
                             : getAdaptaiveTheme().colors.outlineVariant
                     }
@@ -156,7 +136,7 @@ export default function index() {
                         }}
                     />
                 </View>
-                <TouchableOpacity
+                <View
                     style={{
                         width: 9,
                         height: 9,
@@ -168,7 +148,7 @@ export default function index() {
                         elevation: 3,
                         alignSelf: "center",
                     }}
-                ></TouchableOpacity>
+                ></View>
                 <FAB
                     icon={"microphone"}
                     style={{
