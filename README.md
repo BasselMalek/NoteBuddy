@@ -11,7 +11,7 @@
 > - [x] Working prototype.
 > - [x] UI.
 > - [ ] Smooth detection results to prevent sudden note changes from harmonics.
-> - [ ] UI Tweaks.
+> - [x] UI Tweaks.
 >
 > #### Metronome
 >
