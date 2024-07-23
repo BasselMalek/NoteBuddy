@@ -13,7 +13,6 @@ import { getAdaptaiveTheme } from "@/constants/Colors";
 import { Theme as CalendarTheme } from "react-native-calendars/src/types";
 import { StripCalendar } from "@/components/StripCalendar";
 import { toDateId, Calendar } from "@marceloterreiro/flash-calendar";
-import * as CRUD from "@/components/CRUD";
 import { ExpandableCalendar, CalendarProvider } from "react-native-calendars";
 import {
     useQuery,
@@ -21,43 +20,13 @@ import {
     useQueryClient,
     usePrefetchInfiniteQuery,
 } from "@tanstack/react-query";
+import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
 
-const mapResToEntry = (result: any | null, timestamp: Date): EntryData => {
-    if (result === null) {
-        return {
-            date: timestamp,
-            title: "",
-            rating: 0,
-            desc: "",
-            durationFrom: timestamp,
-            durationTo: timestamp,
-            durationTime: "",
-            submit: false,
-            submitAction: "add",
-        };
-    } else {
-        return {
-            date: new Date(result.date),
-            title: result.title,
-            durationTime: result.duration,
-            durationFrom: new Date(`${result.date}T${result.startTime}`),
-            durationTo: new Date(`${result.date}T${result.endTime}`),
-            rating: result.rating,
-            desc: result.description,
-            submitAction: "update",
-            submit: false,
-        };
-    }
-};
 const currentDay = new Date();
 const fiveBack = new Date(currentDay.getTime() - 5 * 24 * 60 * 60 * 1000);
 
-let LiveCRUD: CRUD.CRUDService = null;
-(async () => {
-    LiveCRUD = await CRUD.setupCRUDService();
-})();
-
 export default function Practice() {
+    const LiveCRUD = useCRUDService("PracticeEntries.db");
     const [selectedDate, setSelectedDate] = useState(currentDay);
     const [loadedEntry, setLoadedEntry] = useState<EntryData>({
         date: currentDay,
@@ -71,19 +40,17 @@ export default function Practice() {
         submitAction: "add",
     });
 
-    useDrizzleStudio(LiveCRUD!.db);
     const queryClient = useQueryClient();
     const entryMutator = useMutation(
         {
-            mutationFn: (entry: EntryData) =>
-                CRUD.mutateRecord(LiveCRUD, entry),
+            mutationFn: (entry: EntryData) => LiveCRUD!.mutateRecord(entry),
         },
         queryClient
     );
     usePrefetchInfiniteQuery({
         queryKey: ["entry"],
         queryFn: () => {
-            CRUD.queryRecord(LiveCRUD, toDateId(fiveBack));
+            LiveCRUD!.queryRecord(toDateId(fiveBack));
         },
         initialPageParam: fiveBack,
         getNextPageParam: (lastPage: any, pages: any) => {
@@ -108,10 +75,11 @@ export default function Practice() {
                 const data = await queryClient.fetchQuery({
                     queryKey: ["entry", selectedDate],
                     queryFn: () =>
-                        CRUD.queryRecord(LiveCRUD, toDateId(selectedDate)),
+                        LiveCRUD!.queryRecord(toDateId(selectedDate)),
                 });
                 setLoadedEntry(mapResToEntry(data, selectedDate));
             })();
+            console.log(loadedEntry);
         }
         return () => {};
     }, [selectedDate, LiveCRUD]);
@@ -141,16 +109,14 @@ export default function Practice() {
             >
                 <ExpandableCalendar
                     theme={calTheme}
-                    markedDates={{ "2024-07-11": { marked: true } }}
                     disableArrowLeft
                     disableArrowRight
-                    maxDate={"2024-07-16"}
+                    maxDate={toDateId(currentDay)}
                     hideArrows
                     disablePan
                     hideKnob
                     onDayPress={(day) => {
                         console.log(day);
-
                         setSelectedDate(new Date(day.dateString.slice(0, 10)));
                     }}
                     disableAllTouchEventsForDisabledDays
