@@ -57,6 +57,9 @@ class CRUDInterface {
             throw new Error("Invalid CRUDService.");
         }
     }
+    async endService() {
+        this.db.closeAsync();
+    }
 }
 
 type CRUDService = CRUDInterface | null;
