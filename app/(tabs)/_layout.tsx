@@ -13,10 +13,12 @@ import { LightTheme, DarkTheme } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
 import { useState } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { firstTimeSetup } from "@/hooks/useCRUD";
 
 const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 10000 } },
 });
+firstTimeSetup("PracticeEntries.db");
 
 export default function RootLayout() {
     const currentTheme = useColorScheme() ?? "light";
@@ -81,10 +83,7 @@ export default function RootLayout() {
                             }}
                             getLabelText={({ route }) => {
                                 const { options } = descriptors[route.key];
-                                const label =
-                                    options.tabBarLabel !== undefined
-                                        ? options.tabBarLabel
-                                        : options.title;
+                                const label = options.title;
                                 return label;
                             }}
                         />
@@ -123,6 +122,19 @@ export default function RootLayout() {
                             tabBarIcon: () => (
                                 <MaterialCommunityIcons
                                     name="calendar-month"
+                                    size={24}
+                                    color={activeTheme.colors.primary}
+                                />
+                            ),
+                        }}
+                    />
+                    <Tabs.Screen
+                        name="account"
+                        options={{
+                            title: "Account",
+                            tabBarIcon: () => (
+                                <MaterialCommunityIcons
+                                    name="account"
                                     size={24}
                                     color={activeTheme.colors.primary}
                                 />
