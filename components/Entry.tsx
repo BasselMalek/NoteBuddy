@@ -73,8 +73,6 @@ function Entry(props: {
                 60
         );
         const hr = Math.floor(m / 60);
-        console.log(hr + "hrs " + (m - hr * 60) + "m");
-
         editDispatch({
             type: "SET_DURATION_TIME",
             payload: hr + "hrs " + (m - hr * 60) + "m",

@@ -5,6 +5,7 @@ import {
     PaperProvider,
     ActivityIndicator,
     FAB,
+    Button,
 } from "react-native-paper";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import { Entry, EntryData } from "@/components/Entry";
@@ -23,7 +24,6 @@ import {
 import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
 
 const currentDay = new Date();
-const fiveBack = new Date(currentDay.getTime() - 5 * 24 * 60 * 60 * 1000);
 
 export default function Practice() {
     const LiveCRUD = useCRUDService("PracticeEntries.db");
@@ -47,27 +47,6 @@ export default function Practice() {
         },
         queryClient
     );
-    usePrefetchInfiniteQuery({
-        queryKey: ["entry"],
-        queryFn: () => {
-            LiveCRUD!.queryRecord(toDateId(fiveBack));
-        },
-        initialPageParam: fiveBack,
-        getNextPageParam: (lastPage: any, pages: any) => {
-            const next = new Date();
-            next.setDate(lastPage.getDate() + 1);
-            return next;
-        },
-        pages: 5,
-    });
-    // // useEffect(() => {
-    // //     (async () => {
-    // //         if (LiveCRUD != null) {
-    // //             await queryClient.prefetchInfiniteQuery({});
-    // //         }
-    // //     })();
-    // //     return () => {};
-    // // }, []);
 
     useEffect(() => {
         if (LiveCRUD != null) {
@@ -79,63 +58,34 @@ export default function Practice() {
                 });
                 setLoadedEntry(mapResToEntry(data, selectedDate));
             })();
-            console.log(loadedEntry);
         }
         return () => {};
     }, [selectedDate, LiveCRUD]);
 
-    const calTheme: CalendarTheme = {
-        backgroundColor: getAdaptaiveTheme().colors.surface, // Maps to 'surface' from theme data
-        calendarBackground: getAdaptaiveTheme().colors.surfaceVariant, // Maps to 'background' from theme data
-        textSectionTitleColor: getAdaptaiveTheme().colors.onSurfaceVariant, // Maps to 'outlineVariant' from theme data
-        selectedDayBackgroundColor: getAdaptaiveTheme().colors.secondary, // Maps to 'primary' from theme data
-        // : getAdaptaiveTheme().colors.onSurfaceVariant,
-        monthTextColor: getAdaptaiveTheme().colors.onSurfaceVariant,
-        selectedDayTextColor: getAdaptaiveTheme().colors.onSecondary, // Maps to 'onPrimary' from theme data
-        todayTextColor: getAdaptaiveTheme().colors.primary, // Maps to 'primary' from theme data
-        dayTextColor: getAdaptaiveTheme().colors.onSurfaceVariant, // Maps to 'onBackground' from theme data
-        textDisabledColor: getAdaptaiveTheme().colors.onSurfaceDisabled, // Maps to 'onSurfaceDisabled' from theme data
-        dotColor: getAdaptaiveTheme().colors.tertiary,
-    };
-
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
-            {/* //! Replace with custom component because this one's PERFORMANCE IS
-            //! ABHORENT TOO! */}
-            <CalendarProvider
-                style={{ flex: 1, maxHeight: 120 }}
-                theme={calTheme}
-                date={selectedDate.toString()}
-            >
-                <ExpandableCalendar
-                    theme={calTheme}
-                    disableArrowLeft
-                    disableArrowRight
-                    maxDate={toDateId(currentDay)}
-                    hideArrows
-                    disablePan
-                    hideKnob
-                    onDayPress={(day) => {
-                        console.log(day);
-                        setSelectedDate(new Date(day.dateString.slice(0, 10)));
-                    }}
-                    disableAllTouchEventsForDisabledDays
-                    disableIntervalMomentum
-                    disableAllTouchEventsForInactiveDays
-                ></ExpandableCalendar>
-            </CalendarProvider>
-
             <View style={styles.rootContainer}>
-                {/* <Card style={styles.calendarCard}>
-                    <Card.Content style={{ height: 200, paddingTop: 0 }}>
-                        <StripCalendar
-                            calendarMonthId={toDateId(selectedDate)}
-                            onCalendarDayPress={(day) => {
-                                setSelectedDate(new Date(day));
-                            }}
-                        ></StripCalendar>
-                    </Card.Content>
-                </Card> */}
+                <Button
+                    onPress={() => {
+                        setSelectedDate(
+                            new Date(currentDay.getTime() + 1 * 24 * 120 * 1000)
+                        );
+                    }}
+                >
+                    {"+1"}
+                </Button>
+                <PaperText style={{ textAlign: "center" }}>
+                    {selectedDate.toDateString()}
+                </PaperText>
+                <Button
+                    onPress={() => {
+                        setSelectedDate(
+                            new Date(currentDay.getTime() - 1 * 24 * 120 * 1000)
+                        );
+                    }}
+                >
+                    {"-1"}
+                </Button>
                 <Card style={styles.expandedCard}>
                     <Card.Content>
                         {/* //TODO: The loading indicator here doesn't work because
