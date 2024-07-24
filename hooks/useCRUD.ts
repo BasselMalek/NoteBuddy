@@ -1,6 +1,7 @@
 import * as SQL from "expo-sqlite";
 import { EntryData } from "@/components/Entry";
 import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 class CRUDInterface {
     private db: SQL.SQLiteDatabase;
@@ -57,6 +58,17 @@ class CRUDInterface {
             throw new Error("Invalid CRUDService.");
         }
     }
+    // // async DEBUG_QUERY_ALL() {
+    // //     if (this != null) {
+    // //         try {
+    // //             return this.db.getAllAsync("SELECT * FROM entries;");
+    // //         } catch (error) {
+    // //             console.error(error);
+    // //         }
+    // //     } else {
+    // //         throw new Error("Invalid CRUDService.");
+    // //     }
+    // // }
     async endService() {
         this.db.closeAsync();
     }
@@ -64,8 +76,24 @@ class CRUDInterface {
 
 type CRUDService = CRUDInterface | null;
 
+const firstTimeSetup = async (database: string) => {
+    try {
+        const flag = await AsyncStorage.getItem("firstLaunch");
+        if (flag != "true") {
+            const db = await SQL.openDatabaseAsync("PracticeEntries.db");
+            db.execAsync(
+                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY, title TEXT,startTime TIME,endTime TIME,duration TEXT,rating INTEGER,description TEXT)"
+            );
+            db.execAsync("PRAGMA journal_mode=WAL;");
+            await AsyncStorage.setItem("firstLaunch", "true");
+        }
+    } catch (e) {
+        console.error(e);
+    }
+};
+
 const mapEntryToQuery = (entry: EntryData) => ({
-    $date: entry.date.toISOString().slice(0, 10).replace("T", " "),
+    $date: entry.date.toISOString().slice(0, 10),
     $title: entry.title,
     $startTime: entry.durationFrom.toISOString().slice(12, 19),
     $endTime: entry.durationTo.toISOString().slice(12, 19),
@@ -116,7 +144,7 @@ async function setupCRUDService(database: string): Promise<{
                 "SELECT date, title, startTime, endTime, duration, rating, description FROM entries WHERE date = $startDate;"
             ),
             createStatement: await db.prepareAsync(
-                "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description) RETURNING *"
+                "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description)"
             ),
             updateStatement: await db.prepareAsync(
                 "UPDATE entries SET title = $title, startTime = $startTime, endTime = $endTime, duration = $duration, rating = $rating, description = $description WHERE date = $date RETURNING *"
@@ -127,7 +155,7 @@ async function setupCRUDService(database: string): Promise<{
         return {};
     }
 }
-
+//TODO: Create an actual Context component for it to be an actually useful hook.
 function useCRUDService(database: string): CRUDService {
     const [crudService, setCrudService] = useState<CRUDService>(null);
 
@@ -156,4 +184,4 @@ function useCRUDService(database: string): CRUDService {
     return crudService;
 }
 
-export { useCRUDService, mapResToEntry };
+export { useCRUDService, mapResToEntry, firstTimeSetup };
