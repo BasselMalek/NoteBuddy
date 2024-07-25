@@ -28,6 +28,7 @@ const currentDay = new Date();
 export default function Practice() {
     const LiveCRUD = useCRUDService("PracticeEntries.db");
     const [selectedDate, setSelectedDate] = useState(currentDay);
+    const [reloadFlag, setReloadFlag] = useState(false);
     const [loadedEntry, setLoadedEntry] = useState<EntryData>({
         date: currentDay,
         title: "",
@@ -57,10 +58,11 @@ export default function Practice() {
                         LiveCRUD!.queryRecord(toDateId(selectedDate)),
                 });
                 setLoadedEntry(mapResToEntry(data, selectedDate));
+                setReloadFlag(false);
             })();
         }
         return () => {};
-    }, [selectedDate, LiveCRUD]);
+    }, [selectedDate, LiveCRUD, reloadFlag]);
 
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
@@ -68,7 +70,9 @@ export default function Practice() {
                 <Button
                     onPress={() => {
                         setSelectedDate(
-                            new Date(currentDay.getTime() + 1 * 24 * 120 * 1000)
+                            new Date(
+                                selectedDate.getTime() + 1 * 24 * 3600 * 1000
+                            )
                         );
                     }}
                 >
@@ -80,8 +84,11 @@ export default function Practice() {
                 <Button
                     onPress={() => {
                         setSelectedDate(
-                            new Date(currentDay.getTime() - 1 * 24 * 120 * 1000)
+                            new Date(
+                                selectedDate.getTime() - 1 * 24 * 3600 * 1000
+                            )
                         );
+                        console.log(selectedDate);
                     }}
                 >
                     {"-1"}
@@ -95,9 +102,7 @@ export default function Practice() {
                             onEntryChangeHandler={(editedEntry: EntryData) => {
                                 entryMutator.mutate(editedEntry, {
                                     onSuccess: async (data) => {
-                                        setLoadedEntry(
-                                            mapResToEntry(data, selectedDate)
-                                        );
+                                        setReloadFlag(true);
                                     },
                                     onError: (error) => {
                                         console.error(error);

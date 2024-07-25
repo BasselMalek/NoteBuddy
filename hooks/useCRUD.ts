@@ -50,7 +50,7 @@ class CRUDInterface {
                 const affectedData = await this.createStatement.executeAsync(
                     mapEntryToQuery(data)
                 );
-                return affectedData.getFirstAsync();
+                return affectedData.changes;
             } catch (error) {
                 console.error(error);
             }
@@ -58,17 +58,17 @@ class CRUDInterface {
             throw new Error("Invalid CRUDService.");
         }
     }
-    // // async DEBUG_QUERY_ALL() {
-    // //     if (this != null) {
-    // //         try {
-    // //             return this.db.getAllAsync("SELECT * FROM entries;");
-    // //         } catch (error) {
-    // //             console.error(error);
-    // //         }
-    // //     } else {
-    // //         throw new Error("Invalid CRUDService.");
-    // //     }
-    // // }
+    async DEBUG_QUERY_ALL() {
+        if (this != null) {
+            try {
+                return this.db.getAllAsync("SELECT * FROM entries;");
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            throw new Error("Invalid CRUDService.");
+        }
+    }
     async endService() {
         this.db.closeAsync();
     }
