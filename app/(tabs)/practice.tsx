@@ -3,24 +3,12 @@ import {
     Card,
     Text as PaperText,
     PaperProvider,
-    ActivityIndicator,
-    FAB,
     Button,
 } from "react-native-paper";
-import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
 import { Entry, EntryData } from "@/components/Entry";
 import React, { useEffect, useState, Suspense } from "react";
 import { getAdaptaiveTheme } from "@/constants/Colors";
-import { Theme as CalendarTheme } from "react-native-calendars/src/types";
-import { StripCalendar } from "@/components/StripCalendar";
-import { toDateId, Calendar } from "@marceloterreiro/flash-calendar";
-import { ExpandableCalendar, CalendarProvider } from "react-native-calendars";
-import {
-    useQuery,
-    useMutation,
-    useQueryClient,
-    usePrefetchInfiniteQuery,
-} from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
 
 const currentDay = new Date();
@@ -55,7 +43,9 @@ export default function Practice() {
                 const data = await queryClient.fetchQuery({
                     queryKey: ["entry", selectedDate],
                     queryFn: () =>
-                        LiveCRUD!.queryRecord(toDateId(selectedDate)),
+                        LiveCRUD!.queryRecord(
+                            selectedDate.toISOString().slice(0, 10)
+                        ),
                 });
                 setLoadedEntry(mapResToEntry(data, selectedDate));
                 setReloadFlag(false);
@@ -93,6 +83,16 @@ export default function Practice() {
                 >
                     {"-1"}
                 </Button>
+                {/* <Button
+                    onPress={async () => {
+                        const rows = await LiveCRUD!.DEBUG_QUERY_ALL();
+                        for (const row of rows) {
+                            console.log(row);
+                        }
+                    }}
+                >
+                    {"DEBUGSHOWALLROWS"}
+                </Button> */}
                 <Card style={styles.expandedCard}>
                     <Card.Content>
                         {/* //TODO: The loading indicator here doesn't work because
@@ -102,7 +102,9 @@ export default function Practice() {
                             onEntryChangeHandler={(editedEntry: EntryData) => {
                                 entryMutator.mutate(editedEntry, {
                                     onSuccess: async (data) => {
-                                        setReloadFlag(true);
+                                        if (data === 1) {
+                                            setReloadFlag(true);
+                                        }
                                     },
                                     onError: (error) => {
                                         console.error(error);

@@ -44,11 +44,21 @@ class CRUDInterface {
         }
     }
 
+    async calcStreak(datestamp: Date) {
+        const check = new Date(datestamp.getTime() - 24 * 3600 * 1000);
+        const row: { streak: number } | null = await this.db.getFirstAsync(
+            "SELECT streak FROM entries where date = $date;",
+            check.toISOString().slice(0, 10)
+        );
+        return row === null ? 0 : row!.streak + 1;
+    }
+
     async mutateRecord(data: EntryData) {
         if (this != null) {
             try {
+                const str = await this.calcStreak(data.date);
                 const affectedData = await this.createStatement.executeAsync(
-                    mapEntryToQuery(data)
+                    mapEntryToQuery(data, str)
                 );
                 return affectedData.changes;
             } catch (error) {
@@ -82,17 +92,18 @@ const firstTimeSetup = async (database: string) => {
         if (flag != "true") {
             const db = await SQL.openDatabaseAsync("PracticeEntries.db");
             db.execAsync(
-                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY, title TEXT,startTime TIME,endTime TIME,duration TEXT,rating INTEGER,description TEXT)"
+                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY UNIQUE, title TEXT,startTime TIME,endTime TIME,duration TEXT,rating INTEGER,description TEXT, streak INTEGER)"
             );
             db.execAsync("PRAGMA journal_mode=WAL;");
             await AsyncStorage.setItem("firstLaunch", "true");
+            console.log("first");
         }
     } catch (e) {
         console.error(e);
     }
 };
 
-const mapEntryToQuery = (entry: EntryData) => ({
+const mapEntryToQuery = (entry: EntryData, streak: number) => ({
     $date: entry.date.toISOString().slice(0, 10),
     $title: entry.title,
     $startTime: entry.durationFrom.toISOString().slice(12, 19),
@@ -100,6 +111,7 @@ const mapEntryToQuery = (entry: EntryData) => ({
     $duration: entry.durationTime,
     $rating: entry.rating,
     $description: entry.desc,
+    $streak: streak,
 });
 
 const mapResToEntry = (result: any | null, timestamp: Date): EntryData => {
@@ -144,7 +156,7 @@ async function setupCRUDService(database: string): Promise<{
                 "SELECT date, title, startTime, endTime, duration, rating, description FROM entries WHERE date = $startDate;"
             ),
             createStatement: await db.prepareAsync(
-                "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description)"
+                "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description, streak) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description, $streak)"
             ),
             updateStatement: await db.prepareAsync(
                 "UPDATE entries SET title = $title, startTime = $startTime, endTime = $endTime, duration = $duration, rating = $rating, description = $description WHERE date = $date RETURNING *"
