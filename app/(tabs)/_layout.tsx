@@ -56,7 +56,6 @@ export default function RootLayout() {
                                     target: route.key,
                                     canPreventDefault: true,
                                 });
-
                                 if (event.defaultPrevented) {
                                     preventDefault();
                                 } else {
@@ -78,7 +77,6 @@ export default function RootLayout() {
                                         size: 24,
                                     });
                                 }
-
                                 return null;
                             }}
                             getLabelText={({ route }) => {
@@ -129,12 +127,12 @@ export default function RootLayout() {
                         }}
                     />
                     <Tabs.Screen
-                        name="account"
+                        name="stats"
                         options={{
-                            title: "Account",
+                            title: "Statistics",
                             tabBarIcon: () => (
                                 <MaterialCommunityIcons
-                                    name="account"
+                                    name="chart-bar"
                                     size={24}
                                     color={activeTheme.colors.primary}
                                 />
