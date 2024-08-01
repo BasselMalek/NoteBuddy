@@ -25,7 +25,9 @@ import Animated, {
     useAnimatedStyle,
     interpolateColor,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Metronome() {
+    const safeInsets = useSafeAreaInsets();
     const [currentBpm, setCurrentBpm] = useReducer(
         //TODO(1.1): make it so the action obj has exactValue/additiveValue to account for exact/increment
         (state: number, action: number) => {

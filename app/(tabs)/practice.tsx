@@ -10,10 +10,12 @@ import React, { useEffect, useState, Suspense } from "react";
 import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const currentDay = new Date();
 
 export default function Practice() {
+    const safeInsets = useSafeAreaInsets();
     const LiveCRUD = useCRUDService("PracticeEntries.db");
     const [selectedDate, setSelectedDate] = useState(currentDay);
     const [reloadFlag, setReloadFlag] = useState(false);
@@ -56,64 +58,78 @@ export default function Practice() {
 
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
-            <View style={styles.rootContainer}>
-                <Button
-                    onPress={() => {
-                        setSelectedDate(
-                            new Date(
-                                selectedDate.getTime() + 1 * 24 * 3600 * 1000
-                            )
-                        );
-                    }}
-                >
-                    {"+1"}
-                </Button>
-                <PaperText style={{ textAlign: "center" }}>
-                    {selectedDate.toDateString()}
-                </PaperText>
-                <Button
-                    onPress={() => {
-                        setSelectedDate(
-                            new Date(
-                                selectedDate.getTime() - 1 * 24 * 3600 * 1000
-                            )
-                        );
-                        console.log(selectedDate);
-                    }}
-                >
-                    {"-1"}
-                </Button>
-                {/* <Button
+            <View
+                style={{
+                    flex: 1,
+                    paddingTop: safeInsets.top + 5,
+                    paddingBottom: safeInsets.bottom,
+                    paddingRight: safeInsets.right,
+                    paddingLeft: safeInsets.left,
+                }}
+            >
+                <View style={styles.rootContainer}>
+                    <Button
+                        onPress={() => {
+                            setSelectedDate(
+                                new Date(
+                                    selectedDate.getTime() +
+                                        1 * 24 * 3600 * 1000
+                                )
+                            );
+                        }}
+                    >
+                        {"+1"}
+                    </Button>
+                    <PaperText style={{ textAlign: "center" }}>
+                        {selectedDate.toDateString()}
+                    </PaperText>
+                    <Button
+                        onPress={() => {
+                            setSelectedDate(
+                                new Date(
+                                    selectedDate.getTime() -
+                                        1 * 24 * 3600 * 1000
+                                )
+                            );
+                            console.log(selectedDate);
+                        }}
+                    >
+                        {"-1"}
+                    </Button>
+                    {/* <Button
                     onPress={async () => {
                         const rows = await LiveCRUD!.DEBUG_QUERY_ALL();
                         for (const row of rows) {
                             console.log(row);
-                        }
-                    }}
-                >
-                    {"DEBUGSHOWALLROWS"}
-                </Button> */}
-                <Card style={styles.expandedCard}>
-                    <Card.Content>
-                        {/* //TODO: The loading indicator here doesn't work because
-                        // loading isn't communicated to app state. Fix that. */}
-                        <Entry
-                            entryData={loadedEntry!}
-                            onEntryChangeHandler={(editedEntry: EntryData) => {
-                                entryMutator.mutate(editedEntry, {
-                                    onSuccess: async (data) => {
-                                        if (data === 1) {
-                                            setReloadFlag(true);
-                                        }
-                                    },
-                                    onError: (error) => {
-                                        console.error(error);
-                                    },
-                                });
+                            }
                             }}
-                        />
-                    </Card.Content>
-                </Card>
+                            >
+                            {"DEBUGSHOWALLROWS"}
+                            </Button> */}
+                    <Card style={styles.expandedCard}>
+                        <Card.Content>
+                            {/* //TODO: The loading indicator here doesn't work because
+                        // loading isn't communicated to app state. Fix that. */}
+                            <Entry
+                                entryData={loadedEntry!}
+                                onEntryChangeHandler={(
+                                    editedEntry: EntryData
+                                ) => {
+                                    entryMutator.mutate(editedEntry, {
+                                        onSuccess: async (data) => {
+                                            if (data === 1) {
+                                                setReloadFlag(true);
+                                            }
+                                        },
+                                        onError: (error) => {
+                                            console.error(error);
+                                        },
+                                    });
+                                }}
+                            />
+                        </Card.Content>
+                    </Card>
+                </View>
             </View>
         </PaperProvider>
     );

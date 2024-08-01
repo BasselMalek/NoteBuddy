@@ -33,11 +33,13 @@ export default function RootLayout() {
                         backgroundColor: activeTheme.colors.background,
                     }}
                     screenOptions={{
+                        headerShown: false,
                         headerStyle: {
                             backgroundColor: activeTheme.colors.surfaceVariant,
                             shadowColor: "transparent",
                         },
                         headerTitleStyle: {
+                            // // display: "none",
                             color: activeTheme.colors.onSurface,
                         },
                     }}
