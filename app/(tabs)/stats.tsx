@@ -13,163 +13,82 @@ import {
     Image,
 } from "react-native";
 import StreakFlame from "@/components/StreakFlame";
+import EquipmentWall from "@/components/EquipmentWall";
 import { getAdaptaiveTheme } from "@/constants/Colors";
-
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 export default function Account() {
+    const safeInsets = useSafeAreaInsets();
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
-            <View style={{ padding: 10 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        marginBottom: 8,
-                        paddingBottom: 0,
-                        // // borderWidth: 1,
-                        // // borderColor: "red",
-                        alignItems: "flex-end",
-                    }}
-                >
-                    <Image
-                        source={{
-                            uri: "https://images.unsplash.com/profile-1605956841755-ce69927f3ccaimage",
-                        }}
-                        style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 100,
-                            borderWidth: 1,
-                            borderColor: "red",
-                            marginRight: 15,
-                        }}
-                    />
-                    <PaperText
-                        style={{
-                            fontFamily: "arial",
-                            fontSize: 32,
-                            // // borderWidth: 1,
-                            // // borderColor: "red",
-                            paddingBottom: 0,
-                            // // marginBottom: -10,
-                            lineHeight: 32,
-                            textAlign: "left",
-                        }}
-                    >
-                        Hi Bassel!
-                    </PaperText>
-                </View>
-                <Card style={styles.card}>
-                    <View
-                        style={{
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
+            <View
+                style={{
+                    flex: 1,
+                    paddingTop: safeInsets.top + 5,
+                    paddingBottom: safeInsets.bottom,
+                    paddingRight: safeInsets.right,
+                    paddingLeft: safeInsets.left,
+                }}
+            >
+                <View style={styles.rootContainer}>
+                    <Card style={{ ...styles.card, flex: 2 }}>
                         <StreakFlame
-                            level={0}
+                            level={1}
                             unfilled={getAdaptaiveTheme().colors.surfaceVariant}
                             filled={getAdaptaiveTheme().colors.tertiary}
                         ></StreakFlame>
-                    </View>
-                    <View style={styles.row}>
-                        <View>
-                            <PaperText style={styles.item}>
-                                Total practice days: 1
-                            </PaperText>
-                            <PaperText style={styles.item}>
-                                Avg. duration: 2.6hrs
-                            </PaperText>
+                        <View style={styles.row}>
+                            <View>
+                                <PaperText style={styles.item}>
+                                    Total practice days: 1
+                                </PaperText>
+                                <PaperText style={styles.item}>
+                                    Avg. duration: 2.6hrs
+                                </PaperText>
+                            </View>
+                            <View>
+                                <PaperText style={styles.item}>
+                                    Longest Streak: 10
+                                </PaperText>
+                                <PaperText style={styles.item}>
+                                    Avg. Diff: 4.3/5
+                                </PaperText>
+                            </View>
                         </View>
-                        <View>
-                            <PaperText style={styles.item}>
-                                Longest Streak: 10
-                            </PaperText>
-                            <PaperText style={styles.item}>
-                                Avg. Diff: 4.3/5
-                            </PaperText>
-                        </View>
-                    </View>
-                </Card>
-                <Card style={{ ...styles.card, height: 200 }}>
-                    <PaperText>GRAPH GOES HERE</PaperText>
-                </Card>
-                <Card style={styles.card}>
-                    <ImageBackground
-                        style={{
-                            borderWidth: 7,
-                        }}
-                        source={require("../../assets/images/Melamine-wood-003.png")}
-                    >
-                        <ScrollView
-                            horizontal
-                            bounces={false}
-                            style={{
-                                flexDirection: "row",
-                                height: 250,
-                                padding: 10,
-                            }}
-                        >
-                            <Image
-                                source={require("../../assets/images/icon.png")}
-                                style={{
-                                    height: 220,
-                                    width: 90,
-                                    borderWidth: 10,
-                                }}
-                            />
-                            <Image
-                                source={require("../../assets/images/icon.png")}
-                                style={{
-                                    height: 220,
-                                    width: 90,
-                                    borderWidth: 10,
-                                }}
-                            />
-                            <Image
-                                source={require("../../assets/images/icon.png")}
-                                style={{
-                                    height: 220,
-                                    width: 90,
-                                    borderWidth: 10,
-                                }}
-                            />
-                            <Image
-                                source={require("../../assets/images/icon.png")}
-                                style={{
-                                    height: 220,
-                                    width: 90,
-                                    borderWidth: 10,
-                                }}
-                            />
-                            <Image
-                                source={require("../../assets/images/icon.png")}
-                                style={{
-                                    height: 220,
-                                    width: 90,
-                                    borderWidth: 10,
-                                }}
-                            />
-                        </ScrollView>
-                    </ImageBackground>
-                </Card>
+                    </Card>
+                    <Card style={{ ...styles.card, flex: 3 }}>
+                        <PaperText>GRAPH GOES HERE</PaperText>
+                    </Card>
+                    <Card style={{ ...styles.card, flex: 6 }}>
+                        <EquipmentWall
+                            resource={require("../../assets/images/Melamine-wood-003.png")}
+                        ></EquipmentWall>
+                    </Card>
+                </View>
             </View>
         </PaperProvider>
     );
 }
 
 const styles = StyleSheet.create({
+    rootContainer: {
+        flex: 1,
+        justifyContent: "center",
+        padding: 5,
+        rowGap: 5,
+    },
     card: {
-        // // flex: 1,
-        marginBottom: 8,
-        padding: 8,
+        padding: 5,
     },
     row: {
         flexDirection: "row",
-        // // justifyContent: "space-between",
-        gap: 75,
+        gap: 80,
         marginBottom: 8,
     },
     item: {
-        marginHorizontal: 8,
-        marginBottom: 8,
+        marginHorizontal: 5,
+        marginBottom: 5,
     },
 });
