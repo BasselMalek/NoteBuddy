@@ -1,9 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { View, Image, TouchableOpacity } from "react-native";
+import {
+    View,
+    Image,
+    TouchableOpacity,
+    ImageSourcePropType,
+} from "react-native";
 import { Text as PaperText } from "react-native-paper";
 
 export default function EquipmentPiece(props: {
-    resource: any;
+    resource: ImageSourcePropType | undefined;
     price: number;
 }) {
     return (

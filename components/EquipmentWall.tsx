@@ -1,6 +1,13 @@
-import { ScrollView, Image, ImageBackground } from "react-native";
+import {
+    ScrollView,
+    Image,
+    ImageBackground,
+    ImageSourcePropType,
+} from "react-native";
 import EquipmentPiece from "@/components/EquipmentPiece";
-export default function EquipmentWall(props: { resource: any }) {
+export default function EquipmentWall(props: {
+    resource: ImageSourcePropType | undefined;
+}) {
     return (
         <ImageBackground
             style={{
