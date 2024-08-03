@@ -191,7 +191,19 @@ export default function Metronome() {
     // //         </View>
     // //     </PaperProvider>
     // // );
-    return <PaperText>Rebuild</PaperText>;
+    return (
+        <PaperProvider theme={getAdaptaiveTheme()}>
+            <View
+                style={{
+                    flex: 1,
+                    paddingTop: safeInsets.top + 5,
+                    paddingBottom: safeInsets.bottom,
+                    paddingRight: safeInsets.right,
+                    paddingLeft: safeInsets.left,
+                }}
+            ></View>
+        </PaperProvider>
+    );
 }
 
 const style = StyleSheet.create({
