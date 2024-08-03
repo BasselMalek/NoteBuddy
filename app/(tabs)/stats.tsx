@@ -12,13 +12,13 @@ import {
     Text,
     Image,
 } from "react-native";
-import StreakFlame from "@/components/StreakFlame";
 import EquipmentWall from "@/components/EquipmentWall";
 import { getAdaptaiveTheme } from "@/constants/Colors";
 import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import StreakCircle from "@/components/StreakCircle";
 export default function Account() {
     const safeInsets = useSafeAreaInsets();
     return (
@@ -33,27 +33,83 @@ export default function Account() {
                 }}
             >
                 <View style={styles.rootContainer}>
-                    <Card style={{ ...styles.card, flex: 2 }}>
-                        <StreakFlame
-                            level={1}
-                            unfilled={getAdaptaiveTheme().colors.surfaceVariant}
-                            filled={getAdaptaiveTheme().colors.tertiary}
-                        ></StreakFlame>
-                        <View style={styles.row}>
-                            <View>
-                                <PaperText style={styles.item}>
-                                    Total practice days: 1
+                    <Card
+                        style={{
+                            ...styles.card,
+                            flex: 2,
+                        }}
+                    >
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <View
+                                style={{
+                                    flex: 2,
+                                    alignItems: "flex-start",
+                                }}
+                            >
+                                <PaperText
+                                    style={{
+                                        ...styles.item,
+                                        flex: 1,
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {"Days Practiced"}
                                 </PaperText>
-                                <PaperText style={styles.item}>
-                                    Avg. duration: 2.6hrs
+                                <PaperText
+                                    style={{
+                                        ...styles.item,
+                                        flex: 1,
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {"Avg. duration"}
                                 </PaperText>
                             </View>
-                            <View>
-                                <PaperText style={styles.item}>
-                                    Longest Streak: 10
+                            <View
+                                style={{
+                                    flex: 1,
+                                    alignItems: "center",
+                                }}
+                            >
+                                <StreakCircle
+                                    level={1}
+                                    filled={getAdaptaiveTheme().colors.tertiary}
+                                    unfilled={
+                                        getAdaptaiveTheme().colors
+                                            .surfaceVariant
+                                    }
+                                ></StreakCircle>
+                            </View>
+                            <View
+                                style={{
+                                    flex: 2,
+                                    alignItems: "flex-end",
+                                    // // alignItems: "center",
+                                }}
+                            >
+                                <PaperText
+                                    style={{
+                                        ...styles.item,
+                                        flex: 1,
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {"Longest Streak"}
                                 </PaperText>
-                                <PaperText style={styles.item}>
-                                    Avg. Diff: 4.3/5
+                                <PaperText
+                                    style={{
+                                        ...styles.item,
+                                        flex: 1,
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    Avg. Difficulty
                                 </PaperText>
                             </View>
                         </View>
@@ -63,7 +119,7 @@ export default function Account() {
                     </Card>
                     <Card style={{ ...styles.card, flex: 6 }}>
                         <EquipmentWall
-                            resource={require("../../assets/images/Melamine-wood-003.png")}
+                            resource={require("../../assets/images/Melamine-wood-004.png")}
                         ></EquipmentWall>
                     </Card>
                 </View>
@@ -84,8 +140,8 @@ const styles = StyleSheet.create({
     },
     row: {
         flexDirection: "row",
-        gap: 80,
         marginBottom: 8,
+        justifyContent: "center",
     },
     item: {
         marginHorizontal: 5,
