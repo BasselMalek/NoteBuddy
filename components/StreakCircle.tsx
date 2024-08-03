@@ -93,6 +93,7 @@ export default function StreakCircle(props: {
                     position: "absolute",
                     top: props.flameTop === undefined ? 85 : props.flameTop!,
                     left: props.flameLeft === undefined ? 22 : props.flameLeft!,
+                    elevation: 5,
                 }}
             ></Fontisto>
             {/* <PaperText
