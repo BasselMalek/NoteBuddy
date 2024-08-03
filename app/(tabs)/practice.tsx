@@ -16,7 +16,7 @@ const currentDay = new Date();
 
 export default function Practice() {
     const safeInsets = useSafeAreaInsets();
-    const LiveCRUD = useCRUDService("PracticeEntries.db");
+    const LiveCRUD = useCRUDService();
     const [selectedDate, setSelectedDate] = useState(currentDay);
     const [reloadFlag, setReloadFlag] = useState(false);
     const [loadedEntry, setLoadedEntry] = useState<EntryData>({

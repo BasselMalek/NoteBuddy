@@ -1,6 +1,12 @@
 import * as SQL from "expo-sqlite";
 import { EntryData } from "@/components/Entry";
-import { useEffect, useState } from "react";
+import React, {
+    Context,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 class CRUDInterface {
@@ -45,12 +51,37 @@ class CRUDInterface {
     }
 
     async calcStreak(datestamp: Date) {
-        const check = new Date(datestamp.getTime() - 24 * 3600 * 1000);
-        const row: { streak: number } | null = await this.db.getFirstAsync(
-            "SELECT streak FROM entries where date = $date;",
-            check.toISOString().slice(0, 10)
-        );
-        return row === null ? 0 : row!.streak + 1;
+        if (this != null) {
+            try {
+                const check = new Date(datestamp.getTime() - 24 * 3600 * 1000);
+                const row: { streak: number } | null =
+                    await this.db.getFirstAsync(
+                        "SELECT streak FROM entries where date = $date;",
+                        check.toISOString().slice(0, 10)
+                    );
+                return row === null ? 0 : row!.streak + 1;
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            throw new Error("Invalid CRUDService.");
+        }
+    }
+
+    async countDays() {
+        if (this != null) {
+            try {
+                const row: { days: number } | null =
+                    await this.db.getFirstAsync(
+                        "SELECT COUNT(*) AS days FROM entries;"
+                    );
+                return row;
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            throw new Error("Invalid CRUDService.");
+        }
     }
 
     async mutateRecord(data: EntryData) {
@@ -58,7 +89,7 @@ class CRUDInterface {
             try {
                 const str = await this.calcStreak(data.date);
                 const affectedData = await this.createStatement.executeAsync(
-                    mapEntryToQuery(data, str)
+                    mapEntryToQuery(data, str!)
                 );
                 return affectedData.changes;
             } catch (error) {
@@ -168,32 +199,37 @@ async function setupCRUDService(database: string): Promise<{
     }
 }
 //TODO: Create an actual Context component for it to be an actually useful hook.
-function useCRUDService(database: string): CRUDService {
-    const [crudService, setCrudService] = useState<CRUDService>(null);
 
-    useEffect(() => {
-        async function initialize() {
-            const serviceSetup = await setupCRUDService(database);
-            if (
-                serviceSetup.db &&
-                serviceSetup.retrieveStatement &&
-                serviceSetup.createStatement &&
-                serviceSetup.updateStatement
-            ) {
-                setCrudService(
-                    new CRUDInterface({
-                        db: serviceSetup.db,
-                        retrieveStatement: serviceSetup.retrieveStatement,
-                        createStatement: serviceSetup.createStatement,
-                        updateStatement: serviceSetup.updateStatement,
-                    })
-                );
-            }
-        }
-        initialize();
-    }, [database]);
-
-    return crudService;
+async function initializeCRUDService(database: string): Promise<CRUDService> {
+    const serviceSetup = await setupCRUDService(database);
+    if (
+        serviceSetup.db &&
+        serviceSetup.retrieveStatement &&
+        serviceSetup.createStatement &&
+        serviceSetup.updateStatement
+    ) {
+        return new CRUDInterface({
+            db: serviceSetup.db,
+            retrieveStatement: serviceSetup.retrieveStatement,
+            createStatement: serviceSetup.createStatement,
+            updateStatement: serviceSetup.updateStatement,
+        });
+    } else {
+        return null;
+    }
 }
 
-export { useCRUDService, mapResToEntry, firstTimeSetup };
+const ActiveCRUD = createContext<CRUDService>(null);
+
+function useCRUDService(): CRUDService {
+    return useContext(ActiveCRUD);
+}
+
+export {
+    useCRUDService,
+    CRUDService,
+    initializeCRUDService,
+    ActiveCRUD,
+    mapResToEntry,
+    firstTimeSetup,
+};

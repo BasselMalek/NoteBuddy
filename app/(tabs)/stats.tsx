@@ -19,8 +19,21 @@ import {
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import StreakCircle from "@/components/StreakCircle";
+import { useCRUDService } from "@/hooks/useCRUD";
+import { useEffect, useState } from "react";
 export default function Account() {
+    const [totalDays, setTotalDays] = useState(0);
+    const LiveCRUD = useCRUDService();
     const safeInsets = useSafeAreaInsets();
+    useEffect(() => {
+        if (LiveCRUD != null) {
+            (async () => {
+                const count = await LiveCRUD!.countDays();
+                setTotalDays(count!.days);
+            })();
+        }
+    }, [LiveCRUD]);
+
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
             <View
@@ -60,6 +73,16 @@ export default function Account() {
                                     }}
                                 >
                                     {"Days Practiced"}
+                                </PaperText>
+                                <PaperText
+                                    style={{
+                                        ...styles.item,
+                                        flex: 1,
+                                        alignSelf: "center",
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    {totalDays}
                                 </PaperText>
                                 <PaperText
                                     style={{

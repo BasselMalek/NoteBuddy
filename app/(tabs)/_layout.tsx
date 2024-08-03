@@ -13,136 +13,152 @@ import { LightTheme, DarkTheme } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
 import { useState } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { firstTimeSetup } from "@/hooks/useCRUD";
+import {
+    CRUDService,
+    firstTimeSetup,
+    initializeCRUDService,
+} from "@/hooks/useCRUD";
+import CRUDProvider from "@/components/CRUDProvider";
 
 const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 10000 } },
 });
 firstTimeSetup("PracticeEntries.db");
-
+let activeCrud: CRUDService = null;
+(async () => {
+    activeCrud = await initializeCRUDService("PracticeEntries.db");
+})();
 export default function RootLayout() {
     const currentTheme = useColorScheme() ?? "light";
     const [activeTheme, setActiveTheme] = useState(
         currentTheme === "light" ? LightTheme : DarkTheme
     );
     return (
-        <QueryClientProvider client={queryClient}>
-            <PaperProvider theme={activeTheme}>
-                <Tabs
-                    sceneContainerStyle={{
-                        backgroundColor: activeTheme.colors.background,
-                    }}
-                    screenOptions={{
-                        headerShown: false,
-                        headerStyle: {
-                            backgroundColor: activeTheme.colors.surfaceVariant,
-                            shadowColor: "transparent",
-                        },
-                        headerTitleStyle: {
-                            // // display: "none",
-                            color: activeTheme.colors.onSurface,
-                        },
-                    }}
-                    tabBar={({ navigation, state, descriptors, insets }) => (
-                        <BottomNavigation.Bar
-                            theme={activeTheme}
-                            navigationState={state}
-                            style={{
+        <CRUDProvider value={activeCrud}>
+            <QueryClientProvider client={queryClient}>
+                <PaperProvider theme={activeTheme}>
+                    <Tabs
+                        sceneContainerStyle={{
+                            backgroundColor: activeTheme.colors.background,
+                        }}
+                        screenOptions={{
+                            headerShown: false,
+                            headerStyle: {
                                 backgroundColor:
                                     activeTheme.colors.surfaceVariant,
-                            }}
-                            safeAreaInsets={insets}
-                            onTabPress={({ route, preventDefault }) => {
-                                const event = navigation.emit({
-                                    type: "tabPress",
-                                    target: route.key,
-                                    canPreventDefault: true,
-                                });
-                                if (event.defaultPrevented) {
-                                    preventDefault();
-                                } else {
-                                    navigation.dispatch({
-                                        ...CommonActions.navigate(
-                                            route.name,
-                                            route.params
-                                        ),
-                                        target: state.key,
+                                shadowColor: "transparent",
+                            },
+                            headerTitleStyle: {
+                                // // display: "none",
+                                color: activeTheme.colors.onSurface,
+                            },
+                        }}
+                        tabBar={({
+                            navigation,
+                            state,
+                            descriptors,
+                            insets,
+                        }) => (
+                            <BottomNavigation.Bar
+                                theme={activeTheme}
+                                navigationState={state}
+                                style={{
+                                    backgroundColor:
+                                        activeTheme.colors.surfaceVariant,
+                                }}
+                                safeAreaInsets={insets}
+                                onTabPress={({ route, preventDefault }) => {
+                                    const event = navigation.emit({
+                                        type: "tabPress",
+                                        target: route.key,
+                                        canPreventDefault: true,
                                     });
-                                }
-                            }}
-                            renderIcon={({ route, focused, color }) => {
-                                const { options } = descriptors[route.key];
-                                if (options.tabBarIcon) {
-                                    return options.tabBarIcon({
-                                        focused,
-                                        color,
-                                        size: 24,
-                                    });
-                                }
-                                return null;
-                            }}
-                            getLabelText={({ route }) => {
-                                const { options } = descriptors[route.key];
-                                const label = options.title;
-                                return label;
+                                    if (event.defaultPrevented) {
+                                        preventDefault();
+                                    } else {
+                                        navigation.dispatch({
+                                            ...CommonActions.navigate(
+                                                route.name,
+                                                route.params
+                                            ),
+                                            target: state.key,
+                                        });
+                                    }
+                                }}
+                                renderIcon={({ route, focused, color }) => {
+                                    const { options } = descriptors[route.key];
+                                    if (options.tabBarIcon) {
+                                        return options.tabBarIcon({
+                                            focused,
+                                            color,
+                                            size: 24,
+                                        });
+                                    }
+                                    return null;
+                                }}
+                                getLabelText={({ route }) => {
+                                    const { options } = descriptors[route.key];
+                                    const label = options.title;
+                                    return label;
+                                }}
+                            />
+                        )}
+                    >
+                        <Tabs.Screen
+                            name="index"
+                            options={{
+                                title: "Tuner",
+                                tabBarIcon: () => (
+                                    <MaterialCommunityIcons
+                                        name="music-note"
+                                        size={24}
+                                        color={activeTheme.colors.primary}
+                                    />
+                                ),
                             }}
                         />
-                    )}
-                >
-                    <Tabs.Screen
-                        name="index"
-                        options={{
-                            title: "Tuner",
-                            tabBarIcon: () => (
-                                <MaterialCommunityIcons
-                                    name="music-note"
-                                    size={24}
-                                    color={activeTheme.colors.primary}
-                                />
-                            ),
-                        }}
-                    />
-                    <Tabs.Screen
-                        name="metronome"
-                        options={{
-                            title: "Metronome",
-                            tabBarIcon: () => (
-                                <MaterialCommunityIcons
-                                    name="metronome"
-                                    size={24}
-                                    color={activeTheme.colors.primary}
-                                />
-                            ),
-                        }}
-                    />
-                    <Tabs.Screen
-                        name="practice"
-                        options={{
-                            title: "Practice",
-                            tabBarIcon: () => (
-                                <MaterialCommunityIcons
-                                    name="calendar-month"
-                                    size={24}
-                                    color={activeTheme.colors.primary}
-                                />
-                            ),
-                        }}
-                    />
-                    <Tabs.Screen
-                        name="stats"
-                        options={{
-                            title: "Statistics",
-                            tabBarIcon: () => (
-                                <MaterialCommunityIcons
-                                    name="chart-bar"
-                                    size={24}
-                                    color={activeTheme.colors.primary}
-                                />
-                            ),
-                        }}
-                    />
-                </Tabs>
-            </PaperProvider>
-        </QueryClientProvider>
+                        <Tabs.Screen
+                            name="metronome"
+                            options={{
+                                title: "Metronome",
+                                tabBarIcon: () => (
+                                    <MaterialCommunityIcons
+                                        name="metronome"
+                                        size={24}
+                                        color={activeTheme.colors.primary}
+                                    />
+                                ),
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="practice"
+                            options={{
+                                title: "Practice",
+                                tabBarIcon: () => (
+                                    <MaterialCommunityIcons
+                                        name="calendar-month"
+                                        size={24}
+                                        color={activeTheme.colors.primary}
+                                    />
+                                ),
+                            }}
+                        />
+                        <Tabs.Screen
+                            name="stats"
+                            options={{
+                                title: "Statistics",
+                                tabBarIcon: () => (
+                                    <MaterialCommunityIcons
+                                        name="chart-bar"
+                                        size={24}
+                                        color={activeTheme.colors.primary}
+                                    />
+                                ),
+                            }}
+                        />
+                    </Tabs>
+                </PaperProvider>
+            </QueryClientProvider>
+        </CRUDProvider>
     );
 }
