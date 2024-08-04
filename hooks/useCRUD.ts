@@ -33,7 +33,7 @@ class CRUDInterface {
     async createTable() {
         try {
             this.db.execAsync(
-                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY, title TEXT,startTime TIME,endTime TIME,duration TEXT,rating INTEGER,description TEXT)"
+                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY, title TEXT,startTime TIME,endTime TIME,duration INTEGER,rating INTEGER,description TEXT)"
             );
         } catch (error) {}
     }
@@ -199,7 +199,7 @@ const mapResToEntry = (result: any | null, timestamp: Date): EntryData => {
             desc: "",
             durationFrom: timestamp,
             durationTo: timestamp,
-            durationTime: "",
+            durationTime: 0,
             submit: false,
             submitAction: "add",
         };

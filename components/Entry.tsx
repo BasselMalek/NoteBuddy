@@ -13,7 +13,7 @@ import RatingSelector from "@/components/RatingSelector";
 interface EntryData {
     date: Date;
     title: string;
-    durationTime: string;
+    durationTime: number;
     durationFrom: Date;
     durationTo: Date;
     rating: number;
@@ -45,6 +45,12 @@ const entryReducer = (state: any, action: { type: any; payload: any }) => {
     }
 };
 
+const unixIntToString = (unixMS: number) => {
+    const m = Math.round(unixMS / 1000 / 60);
+    const hr = Math.floor(m / 60);
+    return hr + "hrs " + (m - hr * 60) + "m";
+};
+
 function Entry(props: {
     style?: StyleProp<View>;
     entryData: EntryData;
@@ -66,16 +72,11 @@ function Entry(props: {
     }, [props]);
 
     useEffect(() => {
-        const m = Math.round(
-            (editState.durationTo.valueOf() -
-                editState.durationFrom.valueOf()) /
-                1000 /
-                60
-        );
-        const hr = Math.floor(m / 60);
         editDispatch({
             type: "SET_DURATION_TIME",
-            payload: hr + "hrs " + (m - hr * 60) + "m",
+            payload:
+                editState.durationTo.valueOf() -
+                editState.durationFrom.valueOf(),
         });
         return () => {};
     }, [editState.durationFrom, editState.durationTo]);
@@ -195,7 +196,7 @@ function Entry(props: {
                             fontStyle: "italic",
                         }}
                     >
-                        {entryState.durationTime}
+                        {unixIntToString(entryState.durationTime)}
                     </PaperText>
                     <PaperText style={{ paddingVertical: 30 }}>
                         {entryState.desc}

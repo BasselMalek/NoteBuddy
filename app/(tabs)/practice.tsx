@@ -26,7 +26,7 @@ export default function Practice() {
         desc: "",
         durationFrom: new Date(),
         durationTo: new Date(),
-        durationTime: "",
+        durationTime: 0,
         submit: false,
         submitAction: "add",
     });
