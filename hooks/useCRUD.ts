@@ -13,18 +13,21 @@ class CRUDInterface {
     private db: SQL.SQLiteDatabase;
     private retrieveStatement: SQL.SQLiteStatement;
     private createStatement: SQL.SQLiteStatement;
-    private updateStatement: SQL.SQLiteStatement;
+    private aggergateDiffStatement: SQL.SQLiteStatement;
+    private aggergateDurStatement: SQL.SQLiteStatement;
 
     constructor(props: {
         db: SQL.SQLiteDatabase;
         retrieveStatement: SQL.SQLiteStatement;
         createStatement: SQL.SQLiteStatement;
-        updateStatement: SQL.SQLiteStatement;
+        aggergateDiffStatement: SQL.SQLiteStatement;
+        aggergateDurStatement: SQL.SQLiteStatement;
     }) {
         this.db = props.db;
         this.retrieveStatement = props.retrieveStatement;
         this.createStatement = props.createStatement;
-        this.updateStatement = props.updateStatement;
+        this.aggergateDiffStatement = props.aggergateDiffStatement;
+        this.aggergateDurStatement = props.aggergateDurStatement;
     }
 
     async createTable() {
@@ -42,6 +45,48 @@ class CRUDInterface {
                     $startDate: startDate,
                 });
                 return rows.getFirstAsync();
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            throw new Error("Invalid CRUDService.");
+        }
+    }
+    async aggregateDiff(startDate?: Date, endDate?: Date): Promise<any> {
+        if (this != null) {
+            try {
+                const rows = await this.aggergateDiffStatement.executeAsync({
+                    $startdate:
+                        startDate != undefined
+                            ? startDate.toISOString().slice(0, 10)
+                            : "1970-01-01",
+                    $enddate:
+                        endDate != undefined
+                            ? endDate.toISOString().slice(0, 10)
+                            : "2038-01-18",
+                });
+                return rows.getAllAsync();
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            throw new Error("Invalid CRUDService.");
+        }
+    }
+    async aggregateDur(startDate?: Date, endDate?: Date): Promise<any> {
+        if (this != null) {
+            try {
+                const rows = await this.aggergateDurStatement.executeAsync({
+                    $startdate:
+                        startDate != undefined
+                            ? startDate.toISOString().slice(0, 10)
+                            : "1970-01-01",
+                    $enddate:
+                        endDate != undefined
+                            ? endDate.toISOString().slice(0, 10)
+                            : "2038-01-18",
+                });
+                return rows.getAllAsync();
             } catch (error) {
                 console.error(error);
             }
@@ -177,7 +222,8 @@ async function setupCRUDService(database: string): Promise<{
     db?: SQL.SQLiteDatabase;
     retrieveStatement?: SQL.SQLiteStatement;
     createStatement?: SQL.SQLiteStatement;
-    updateStatement?: SQL.SQLiteStatement;
+    aggergateDiffStatement?: SQL.SQLiteStatement;
+    aggergateDurStatement?: SQL.SQLiteStatement;
 }> {
     try {
         const db = await SQL.openDatabaseAsync(database);
@@ -189,8 +235,11 @@ async function setupCRUDService(database: string): Promise<{
             createStatement: await db.prepareAsync(
                 "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description, streak) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description, $streak)"
             ),
-            updateStatement: await db.prepareAsync(
-                "UPDATE entries SET title = $title, startTime = $startTime, endTime = $endTime, duration = $duration, rating = $rating, description = $description WHERE date = $date RETURNING *"
+            aggergateDiffStatement: await db.prepareAsync(
+                "SELECT rating from entries WHERE date BETWEEN $startdate AND $enddate"
+            ),
+            aggergateDurStatement: await db.prepareAsync(
+                "SELECT duration from entries WHERE date BETWEEN $startdate AND $enddate"
             ),
         };
     } catch (error) {
@@ -198,7 +247,6 @@ async function setupCRUDService(database: string): Promise<{
         return {};
     }
 }
-//TODO: Create an actual Context component for it to be an actually useful hook.
 
 async function initializeCRUDService(database: string): Promise<CRUDService> {
     const serviceSetup = await setupCRUDService(database);
@@ -206,13 +254,15 @@ async function initializeCRUDService(database: string): Promise<CRUDService> {
         serviceSetup.db &&
         serviceSetup.retrieveStatement &&
         serviceSetup.createStatement &&
-        serviceSetup.updateStatement
+        serviceSetup.aggergateDiffStatement &&
+        serviceSetup.aggergateDurStatement
     ) {
         return new CRUDInterface({
             db: serviceSetup.db,
             retrieveStatement: serviceSetup.retrieveStatement,
             createStatement: serviceSetup.createStatement,
-            updateStatement: serviceSetup.updateStatement,
+            aggergateDiffStatement: serviceSetup.aggergateDiffStatement,
+            aggergateDurStatement: serviceSetup.aggergateDurStatement,
         });
     } else {
         return null;

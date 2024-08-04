@@ -23,6 +23,7 @@ import { useCRUDService } from "@/hooks/useCRUD";
 import { useEffect, useState } from "react";
 export default function Account() {
     const [totalDays, setTotalDays] = useState(0);
+    const [avgDiff, setAvgDiff] = useState("");
     const LiveCRUD = useCRUDService();
     const safeInsets = useSafeAreaInsets();
     useEffect(() => {
@@ -30,6 +31,15 @@ export default function Account() {
             (async () => {
                 const count = await LiveCRUD!.countDays();
                 setTotalDays(count!.days);
+                const aggDiff = await LiveCRUD!.aggregateDiff();
+                let diffs = 0,
+                    days = 0;
+                for (const diff of aggDiff) {
+                    diffs += diff.rating;
+                    days++;
+                }
+                diffs /= days;
+                setAvgDiff(diffs.toFixed(2));
             })();
         }
     }, [LiveCRUD]);
@@ -65,32 +75,18 @@ export default function Account() {
                                     alignItems: "flex-start",
                                 }}
                             >
-                                <PaperText
-                                    style={{
-                                        ...styles.item,
-                                        flex: 1,
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    {"Days Practiced"}
+                                <PaperText style={styles.item}>
+                                    {"Days Practiced\n"}
+                                    <PaperText
+                                        style={{
+                                            alignSelf: "center",
+                                            lineHeight: 28,
+                                        }}
+                                    >
+                                        {totalDays}
+                                    </PaperText>
                                 </PaperText>
-                                <PaperText
-                                    style={{
-                                        ...styles.item,
-                                        flex: 1,
-                                        alignSelf: "center",
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    {totalDays}
-                                </PaperText>
-                                <PaperText
-                                    style={{
-                                        ...styles.item,
-                                        flex: 1,
-                                        textAlign: "center",
-                                    }}
-                                >
+                                <PaperText style={styles.item}>
                                     {"Avg. duration"}
                                 </PaperText>
                             </View>
@@ -113,26 +109,21 @@ export default function Account() {
                                 style={{
                                     flex: 2,
                                     alignItems: "flex-end",
-                                    // // alignItems: "center",
                                 }}
                             >
-                                <PaperText
-                                    style={{
-                                        ...styles.item,
-                                        flex: 1,
-                                        textAlign: "center",
-                                    }}
-                                >
+                                <PaperText style={styles.item}>
                                     {"Longest Streak"}
                                 </PaperText>
-                                <PaperText
-                                    style={{
-                                        ...styles.item,
-                                        flex: 1,
-                                        textAlign: "center",
-                                    }}
-                                >
-                                    Avg. Difficulty
+                                <PaperText style={styles.item}>
+                                    {"Avg. Difficulty\n"}
+                                    <PaperText
+                                        style={{
+                                            alignSelf: "center",
+                                            lineHeight: 28,
+                                        }}
+                                    >
+                                        {avgDiff}
+                                    </PaperText>
                                 </PaperText>
                             </View>
                         </View>
@@ -168,6 +159,7 @@ const styles = StyleSheet.create({
     },
     item: {
         marginHorizontal: 5,
-        marginBottom: 5,
+        flex: 1,
+        textAlign: "center",
     },
 });
