@@ -85,7 +85,7 @@ export default function StreakCircle(props: {
                     </>
                 )}
             </AnimatedCircularProgress>
-            <Fontisto
+            {/* <Fontisto
                 name="fire"
                 size={42}
                 color={props.level >= 7 ? props.filled : props.unfilled}
@@ -95,7 +95,7 @@ export default function StreakCircle(props: {
                     left: props.flameLeft === undefined ? 22 : props.flameLeft!,
                     elevation: 5,
                 }}
-            ></Fontisto>
+            ></Fontisto> */}
             {/* <PaperText
                 style={{
                     fontSize: 38,

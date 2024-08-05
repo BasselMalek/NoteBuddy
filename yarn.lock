@@ -4397,6 +4397,11 @@ expo-keep-awake@~13.0.2:
   resolved "https://registry.yarnpkg.com/expo-keep-awake/-/expo-keep-awake-13.0.2.tgz#5ef31311a339671eec9921b934fdd90ab9652b0e"
   integrity sha512-kKiwkVg/bY0AJ5q1Pxnm/GvpeB6hbNJhcFsoOWDh2NlpibhCLaHL826KHUM+WsnJRbVRxJ+K9vbPRHEMvFpVyw==
 
+expo-linear-gradient@~13.0.2:
+  version "13.0.2"
+  resolved "https://registry.yarnpkg.com/expo-linear-gradient/-/expo-linear-gradient-13.0.2.tgz#21bd7bc7c71ef4f7c089521daa16db729d2aec5f"
+  integrity sha512-EDcILUjRKu4P1rtWcwciN6CSyGtH7Bq4ll3oTRV7h3h8oSzSilH1g6z7kTAMlacPBKvMnkkWOGzW6KtgMKEiTg==
+
 expo-linking@~6.3.1:
   version "6.3.1"
   resolved "https://registry.yarnpkg.com/expo-linking/-/expo-linking-6.3.1.tgz#05aef8a42bd310391d0b00644be40d80ece038d9"
@@ -4855,6 +4860,11 @@ getenv@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/getenv/-/getenv-1.0.0.tgz#874f2e7544fbca53c7a4738f37de8605c3fcfc31"
   integrity sha512-7yetJWqbS9sbn0vIfliPsFgoXMKn/YMF+Wuiog97x+urnSRRRZ7xB+uVkwGKzRgq9CDFfMQnE9ruL5DHv9c6Xg==
+
+gifted-charts-core@^0.1.27:
+  version "0.1.27"
+  resolved "https://registry.yarnpkg.com/gifted-charts-core/-/gifted-charts-core-0.1.27.tgz#de048527ca44e346acb9904d26884afa22cbdc69"
+  integrity sha512-keU7K7aG3FFOBNBwKHa+ofY/Ncjv1mR6WRFjjQ5tIaCNFbM2RX45LafmKxeN3KrlZh/jun+12liGL2Omh8yGEg==
 
 glob-parent@^5.1.2:
   version "5.1.2"
@@ -7839,6 +7849,13 @@ react-native-gesture-handler@~2.16.1:
     invariant "^2.2.4"
     lodash "^4.17.21"
     prop-types "^15.7.2"
+
+react-native-gifted-charts@^1.4.25:
+  version "1.4.25"
+  resolved "https://registry.yarnpkg.com/react-native-gifted-charts/-/react-native-gifted-charts-1.4.25.tgz#607e8b9ad3bd77488844ef69abd83a9e09c76425"
+  integrity sha512-0mhtJuPMZIf/qmypQDstCB2RJFm/tgh3iRjjw4gSIG9aPtzTuJe5WHQJNyzXgZ/kYadipW2U8ckEGoPxYsuMRA==
+  dependencies:
+    gifted-charts-core "^0.1.27"
 
 react-native-helmet-async@2.0.4:
   version "2.0.4"
