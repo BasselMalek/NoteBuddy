@@ -23,9 +23,10 @@ import CRUDProvider from "@/components/CRUDProvider";
 const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 10000 } },
 });
-firstTimeSetup("PracticeEntries.db");
+//! WILL ALWAYS FAIL ON FIRST LAUNCH. ADD DELAY TO CRUD INIT TO PREVENT ERROR
 let activeCrud: CRUDService = null;
 (async () => {
+    await firstTimeSetup("PracticeEntries.db");
     activeCrud = await initializeCRUDService("PracticeEntries.db");
 })();
 export default function RootLayout() {

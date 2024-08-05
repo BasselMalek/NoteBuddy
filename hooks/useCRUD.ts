@@ -168,11 +168,13 @@ const firstTimeSetup = async (database: string) => {
         if (flag != "true") {
             const db = await SQL.openDatabaseAsync("PracticeEntries.db");
             db.execAsync(
-                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY UNIQUE, title TEXT,startTime TIME,endTime TIME,duration TEXT,rating INTEGER,description TEXT, streak INTEGER)"
+                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY UNIQUE, title TEXT,startTime TIME,endTime TIME,duration INTEGER,rating INTEGER,description TEXT, streak INTEGER)"
             );
             db.execAsync("PRAGMA journal_mode=WAL;");
             await AsyncStorage.setItem("firstLaunch", "true");
-            console.log("first");
+            return true;
+        } else {
+            return false;
         }
     } catch (e) {
         console.error(e);
