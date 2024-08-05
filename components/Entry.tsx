@@ -239,4 +239,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export { Entry, EntryData };
+export { Entry, EntryData, unixIntToString };
