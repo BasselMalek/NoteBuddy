@@ -238,10 +238,10 @@ async function setupCRUDService(database: string): Promise<{
                 "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description, streak) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description, $streak)"
             ),
             aggergateDiffStatement: await db.prepareAsync(
-                "SELECT rating from entries WHERE date BETWEEN $startdate AND $enddate"
+                "SELECT date, rating from entries WHERE date BETWEEN $startdate AND $enddate"
             ),
             aggergateDurStatement: await db.prepareAsync(
-                "SELECT duration from entries WHERE date BETWEEN $startdate AND $enddate"
+                "SELECT date, duration from entries WHERE date BETWEEN $startdate AND $enddate"
             ),
         };
     } catch (error) {
