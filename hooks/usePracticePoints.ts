@@ -27,18 +27,19 @@ function usePoints(
     consistency: number
 ): number {
     //Duration-based bonuses w/ 15+/30mins
+    let adjustedDuration = (duration / 60) * 1000;
     let dailyPoints =
         DURATIONBASE +
-        +(duration <= 45) * DURATIONBONUS1 +
-        +(duration <= 60) * DURATIONBONUS1 +
-        +(duration <= 75) * DURATIONBONUS1 +
-        +(duration <= 105) * DURATIONBONUS2 +
-        +(duration <= 135) * DURATIONBONUS3;
-    if (duration > 135) {
-        duration -= 135;
-        while (duration > 1) {
+        +(adjustedDuration <= 45) * DURATIONBONUS1 +
+        +(adjustedDuration <= 60) * DURATIONBONUS1 +
+        +(adjustedDuration <= 75) * DURATIONBONUS1 +
+        +(adjustedDuration <= 105) * DURATIONBONUS2 +
+        +(adjustedDuration <= 135) * DURATIONBONUS3;
+    if (adjustedDuration > 135) {
+        adjustedDuration -= 135;
+        while (adjustedDuration > 1) {
             dailyPoints += DURATIONBONUS3;
-            duration -= 30;
+            adjustedDuration -= 30;
         }
     }
 
