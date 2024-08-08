@@ -80,7 +80,7 @@ export default function StreakCircle(props: {
                             {`${bonus}x`}{" "}
                         </PaperText>
                         <PaperText style={{ fontSize: 12 }}>
-                            Pts bonus
+                            {"Point Gain"}
                         </PaperText>
                     </>
                 )}
