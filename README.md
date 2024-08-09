@@ -10,7 +10,6 @@
 >
 > - [x] Working prototype.
 > - [x] UI.
-> - [ ] Smooth detection results to prevent sudden note changes from harmonics.
 > - [x] UI Tweaks.
 >
 > #### Metronome
@@ -25,6 +24,6 @@
 >
 > - [x] Build custom entry component.
 > - [ ] Calendar selector.
-> - [ ] Pts algorithm.
-> - [ ] Stat tracking.
+> - [x] Pts algorithm.
+> - [x] Stat tracking.
 > - [x] DB integeration.
