@@ -10,26 +10,32 @@ import EquipmentWall from "@/components/EquipmentWall";
 import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StreakCircle from "@/components/StreakCircle";
-import { useCRUDService } from "@/hooks/useCRUD";
+import { useCRUDService, readUser, MusicianUser } from "@/hooks/useCRUD";
 import { unixIntToString } from "@/components/Entry";
 import { useEffect, useState } from "react";
+
 const currentDay = new Date();
 const sevenBack = new Date(currentDay.getTime() - 6 * 24 * 60 * 60 * 1000);
 const thirtyBack = new Date(currentDay.getTime() - 29 * 24 * 60 * 60 * 1000);
 
 export default function Account() {
+    const [activeUser, setActiveUser] = useState<MusicianUser>({
+        name: "",
+        longestStreak: 0,
+        currentStreak: 0,
+        points: 0,
+        ownedEquipmentIds: [],
+    });
     const [totalDays, setTotalDays] = useState(0);
-    const [avgDiff, setAvgDiff] = useState("");
     const [dataDiff, setDataDiff] = useState<any>();
     const [dataDur, setDataDur] = useState<any>();
-    const [avgDur, setAvgDur] = useState("0hrs 0m");
     const [chartHeight, setChartHeight] = useState(0);
     const [chartWidth, setChartWidth] = useState(0);
     const [highlightedDiff, setHighlightedDiff] =
         useState("Press to highlight");
     const [highlightedDur, setHighlightedDur] = useState("Press to highlight");
-    const [durationGraphScale, setDurationGraphScale] = useState("30D");
-    const [difficultyGraphScale, setdifficultyGraphScale] = useState("30D");
+    const [durationGraphScale, setDurationGraphScale] = useState("7D");
+    const [difficultyGraphScale, setdifficultyGraphScale] = useState("7D");
 
     const LiveCRUD = useCRUDService();
     const safeInsets = useSafeAreaInsets();
@@ -38,6 +44,13 @@ export default function Account() {
         (async () => {
             const count = await LiveCRUD!.countDays();
             setTotalDays(count!.days);
+            const act = await readUser();
+            setActiveUser(act!);
+        })();
+    }, [LiveCRUD]);
+
+    useEffect(() => {
+        (async () => {
             let durSet = [];
             if (durationGraphScale === "7D" || durationGraphScale === "30D") {
                 const aggDur = await LiveCRUD!.aggregateDur(
@@ -157,7 +170,7 @@ export default function Account() {
                                 }}
                             >
                                 <StreakCircle
-                                    level={6}
+                                    level={activeUser?.currentStreak}
                                     filled={getAdaptaiveTheme().colors.tertiary}
                                     unfilled={
                                         getAdaptaiveTheme().colors
@@ -204,7 +217,7 @@ export default function Account() {
                                             {totalDays}
                                         </PaperText>
                                     </PaperText>
-                                    <PaperText style={styles.item}>
+                                    {/* <PaperText style={styles.item}>
                                         {"Avg. Duration\n"}
                                         <PaperText
                                             style={{
@@ -214,13 +227,24 @@ export default function Account() {
                                         >
                                             {avgDur}
                                         </PaperText>
-                                    </PaperText>
+                                    </PaperText> */}
                                 </View>
                                 <View style={{ flexDirection: "row", gap: 5 }}>
                                     <PaperText style={styles.item}>
-                                        {"Longest Streak"}
+                                        {"Longest Streak\n"}
+                                        <PaperText
+                                            style={{
+                                                alignSelf: "center",
+                                                lineHeight: 28,
+                                            }}
+                                        >
+                                            {activeUser?.longestStreak ===
+                                            undefined
+                                                ? 0
+                                                : activeUser!.longestStreak}
+                                        </PaperText>
                                     </PaperText>
-                                    <PaperText style={styles.item}>
+                                    {/* <PaperText style={styles.item}>
                                         {"Avg. Difficulty\n"}
                                         <PaperText
                                             style={{
@@ -230,7 +254,7 @@ export default function Account() {
                                         >
                                             {avgDiff}
                                         </PaperText>
-                                    </PaperText>
+                                    </PaperText> */}
                                 </View>
                             </View>
                         </Card>

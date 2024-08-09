@@ -8,6 +8,47 @@ import React, {
     useState,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { usePoints } from "@/hooks/usePracticePoints";
+
+interface MusicianUser {
+    name: string;
+    points: number;
+    currentStreak: number;
+    longestStreak: number;
+    ownedEquipmentIds: string[];
+}
+
+async function storeUser(updatedInfo: {
+    name?: string;
+    points: number;
+    currentStreak: number;
+    ownedEquipmentIds?: string[];
+}): Promise<boolean> {
+    try {
+        const unedited = await readUser();
+        const serialized = JSON.stringify({
+            name: updatedInfo.name || unedited?.name,
+            points: (unedited?.points || 0) + updatedInfo.points,
+            currentStreak: updatedInfo.currentStreak,
+            longestStreak: Math.max(
+                unedited?.longestStreak || 0,
+                updatedInfo.currentStreak
+            ),
+        });
+        await AsyncStorage.setItem("MainUser", serialized);
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+async function readUser(): Promise<MusicianUser | null> {
+    try {
+        const unparsed = await AsyncStorage.getItem("MainUser");
+        return JSON.parse(unparsed!);
+    } catch (error) {
+        return null;
+    }
+}
 
 class CRUDInterface {
     private db: SQL.SQLiteDatabase;
@@ -136,6 +177,10 @@ class CRUDInterface {
                 const affectedData = await this.createStatement.executeAsync(
                     mapEntryToQuery(data, str!)
                 );
+                await storeUser({
+                    points: usePoints(data.durationTime, data.rating, str!),
+                    currentStreak: str!,
+                });
                 return affectedData.changes;
             } catch (error) {
                 console.error(error);
@@ -162,7 +207,7 @@ class CRUDInterface {
 
 type CRUDService = CRUDInterface | null;
 
-const firstTimeSetup = async (database: string) => {
+const firstTimeSetup = async (database: string): Promise<boolean> => {
     try {
         const flag = await AsyncStorage.getItem("firstLaunch");
         if (flag != "true") {
@@ -173,11 +218,10 @@ const firstTimeSetup = async (database: string) => {
             db.execAsync("PRAGMA journal_mode=WAL;");
             await AsyncStorage.setItem("firstLaunch", "true");
             return true;
-        } else {
-            return false;
         }
+        return false;
     } catch (e) {
-        console.error(e);
+        return false;
     }
 };
 
@@ -284,4 +328,7 @@ export {
     ActiveCRUD,
     mapResToEntry,
     firstTimeSetup,
+    readUser,
+    storeUser,
+    MusicianUser,
 };

@@ -8,8 +8,10 @@ import {
     PaperProvider,
     MD3LightTheme,
     MD3DarkTheme,
+    Portal,
+    Modal,
 } from "react-native-paper";
-import { LightTheme, DarkTheme } from "@/constants/Colors";
+import { LightTheme, DarkTheme, getAdaptaiveTheme } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
 import { useState } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
@@ -17,27 +19,61 @@ import {
     CRUDService,
     firstTimeSetup,
     initializeCRUDService,
+    storeUser,
 } from "@/hooks/useCRUD";
 import CRUDProvider from "@/components/CRUDProvider";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CreateUserForm from "@/components/CreateUserForm";
 
 const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 10000 } },
 });
 //! WILL ALWAYS FAIL ON FIRST LAUNCH. ADD DELAY TO CRUD INIT TO PREVENT ERROR
 let activeCrud: CRUDService = null;
+let profileExists = false;
+
 (async () => {
     await firstTimeSetup("PracticeEntries.db");
     activeCrud = await initializeCRUDService("PracticeEntries.db");
+    const prof = await AsyncStorage.getItem("MainUser");
+    profileExists = prof === null ? false : true;
 })();
 export default function RootLayout() {
     const currentTheme = useColorScheme() ?? "light";
     const [activeTheme, setActiveTheme] = useState(
         currentTheme === "light" ? LightTheme : DarkTheme
     );
+    const [isModalVisible, setIsModalVisible] = useState(!profileExists);
+
     return (
         <CRUDProvider value={activeCrud}>
             <QueryClientProvider client={queryClient}>
                 <PaperProvider theme={activeTheme}>
+                    <Portal>
+                        <Modal
+                            visible={isModalVisible}
+                            contentContainerStyle={{
+                                backgroundColor:
+                                    getAdaptaiveTheme().colors.background,
+                                padding: 20,
+                                margin: 20,
+                                borderRadius: 15,
+                                flexDirection: "column",
+                            }}
+                        >
+                            <CreateUserForm
+                                handler={(nameInput: string) => {
+                                    storeUser({
+                                        name: nameInput,
+                                        points: 0,
+                                        currentStreak: 0,
+                                        ownedEquipmentIds: [],
+                                    });
+                                    setIsModalVisible(false);
+                                }}
+                            />
+                        </Modal>
+                    </Portal>
                     <Tabs
                         sceneContainerStyle={{
                             backgroundColor: activeTheme.colors.background,
