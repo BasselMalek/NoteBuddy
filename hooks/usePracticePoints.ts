@@ -11,7 +11,6 @@ const RATINGBONUS = {
     R5: 10,
 };
 const CONSISTBONUS = {
-    S0: 1.0,
     S1: 1.15,
     S2: 1.25,
     S3: 1.35,
@@ -27,14 +26,14 @@ function usePoints(
     consistency: number
 ): number {
     //Duration-based bonuses w/ 15+/30mins
-    let adjustedDuration = (duration / 60) * 1000;
+    let adjustedDuration = Math.ceil(duration / 60000);
     let dailyPoints =
         DURATIONBASE +
-        +(adjustedDuration <= 45) * DURATIONBONUS1 +
-        +(adjustedDuration <= 60) * DURATIONBONUS1 +
-        +(adjustedDuration <= 75) * DURATIONBONUS1 +
-        +(adjustedDuration <= 105) * DURATIONBONUS2 +
-        +(adjustedDuration <= 135) * DURATIONBONUS3;
+        +(adjustedDuration >= 45) * DURATIONBONUS1 +
+        +(adjustedDuration >= 60) * DURATIONBONUS1 +
+        +(adjustedDuration >= 75) * DURATIONBONUS1 +
+        +(adjustedDuration >= 105) * DURATIONBONUS2 +
+        +(adjustedDuration >= 135) * DURATIONBONUS3;
     if (adjustedDuration > 135) {
         adjustedDuration -= 135;
         while (adjustedDuration > 1) {
@@ -67,25 +66,25 @@ function usePoints(
     //Consistency
     switch (consistency) {
         case 1:
-            dailyPoints += dailyPoints * CONSISTBONUS.S1;
+            dailyPoints *= CONSISTBONUS.S1;
             break;
         case 2:
-            dailyPoints += dailyPoints * CONSISTBONUS.S2;
+            dailyPoints *= CONSISTBONUS.S2;
             break;
         case 3:
-            dailyPoints += dailyPoints * CONSISTBONUS.S3;
+            dailyPoints *= CONSISTBONUS.S3;
             break;
         case 4:
-            dailyPoints += dailyPoints * CONSISTBONUS.S4;
+            dailyPoints *= CONSISTBONUS.S4;
             break;
         case 5:
-            dailyPoints += dailyPoints * CONSISTBONUS.S5;
+            dailyPoints *= CONSISTBONUS.S5;
             break;
         case 6:
-            dailyPoints += dailyPoints * CONSISTBONUS.S6;
+            dailyPoints *= CONSISTBONUS.S6;
             break;
         case 7:
-            dailyPoints += dailyPoints * CONSISTBONUS.S7;
+            dailyPoints *= CONSISTBONUS.S7;
             break;
         default:
             break;
@@ -93,3 +92,5 @@ function usePoints(
 
     return dailyPoints;
 }
+
+export { usePoints };
