@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function index() {
     const safeInsets = useSafeAreaInsets();
     const [isRecording, setisRecording] = useState<Boolean>();
-    const [pitch, setPitch] = useState<string>("Nothing Yet");
+    const [pitch, setPitch] = useState<string>("\u{266A}\u{266A}");
     const [fill, setFill] = useState<number>(0);
 
     async function startTuner() {
@@ -41,6 +41,7 @@ export default function index() {
         setisRecording(await PitchDetector.isRecording());
         PitchDetector.removeAllListeners();
         setFill(0);
+        setPitch("\u{266A}\u{266A}");
     }
 
     return (
