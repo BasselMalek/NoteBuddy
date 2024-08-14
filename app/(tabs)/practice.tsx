@@ -68,48 +68,82 @@ export default function Practice() {
                 }}
             >
                 <View style={styles.rootContainer}>
-                    <Button
-                        onPress={() => {
-                            setSelectedDate(
-                                new Date(
-                                    selectedDate.getTime() +
-                                        1 * 24 * 3600 * 1000
-                                )
-                            );
+                    <View
+                        style={{
+                            margin: 20,
+                            flexDirection: "row",
+                            alignSelf: "center",
+                            justifyContent: "center",
+                            paddingHorizontal: 20,
+                            gap: 10,
                         }}
                     >
-                        {"+1"}
-                    </Button>
-                    <PaperText style={{ textAlign: "center" }}>
-                        {selectedDate.toDateString()}
-                    </PaperText>
-                    <Button
-                        onPress={() => {
-                            setSelectedDate(
-                                new Date(
-                                    selectedDate.getTime() -
-                                        1 * 24 * 3600 * 1000
-                                )
-                            );
-                            console.log(selectedDate);
-                        }}
-                    >
-                        {"-1"}
-                    </Button>
-                    {/* <Button
-                    onPress={async () => {
-                        const rows = await LiveCRUD!.DEBUG_QUERY_ALL();
-                        for (const row of rows) {
-                            console.log(row);
-                            }
+                        <Button
+                            compact
+                            style={{
+                                borderRadius: 12,
+                                width: 50,
                             }}
+                            mode="elevated"
+                            onPress={() => {
+                                setSelectedDate(
+                                    new Date(
+                                        selectedDate.getTime() -
+                                            1 * 24 * 3600 * 1000
+                                    )
+                                );
+                            }}
+                        >
+                            {"<"}
+                        </Button>
+                        {
+                            //TODO: make pressable to open a date selector.
+                        }
+                        <View
+                            style={{
+                                backgroundColor:
+                                    getAdaptaiveTheme().colors.elevation.level1,
+                                elevation: 5,
+                                borderRadius: 12,
+                                paddingVertical: 10,
+                                paddingHorizontal: 25,
+                                justifyContent: "center",
+                                alignContent: "center",
+                            }}
+                        >
+                            <PaperText
+                                style={{
+                                    textAlign: "center",
+                                }}
                             >
-                            {"DEBUGSHOWALLROWS"}
-                            </Button> */}
+                                {selectedDate.toDateString()}
+                            </PaperText>
+                        </View>
+                        <Button
+                            compact
+                            disabled={
+                                selectedDate.toDateString() ===
+                                currentDay.toDateString()
+                            }
+                            style={{
+                                borderRadius: 12,
+                                width: 50,
+                            }}
+                            mode="elevated"
+                            onPress={() => {
+                                setSelectedDate(
+                                    new Date(
+                                        selectedDate.getTime() +
+                                            1 * 24 * 3600 * 1000
+                                    )
+                                );
+                            }}
+                        >
+                            {">"}
+                        </Button>
+                    </View>
                     <Card style={styles.expandedCard}>
                         <Card.Content>
-                            {/* //TODO: The loading indicator here doesn't work because
-                        // loading isn't communicated to app state. Fix that. */}
                             <Entry
                                 entryData={loadedEntry!}
                                 onEntryChangeHandler={(

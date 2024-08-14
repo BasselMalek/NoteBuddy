@@ -72,11 +72,11 @@ function Entry(props: {
     }, [props]);
 
     useEffect(() => {
+        const val =
+            editState.durationTo.valueOf() - editState.durationFrom.valueOf();
         editDispatch({
             type: "SET_DURATION_TIME",
-            payload:
-                editState.durationTo.valueOf() -
-                editState.durationFrom.valueOf(),
+            payload: val < 0 ? 24 * 60 * 60 * 1000 + val : val,
         });
         return () => {};
     }, [editState.durationFrom, editState.durationTo]);
@@ -104,7 +104,6 @@ function Entry(props: {
                     }}
                     starColor={themedStars}
                 ></RatingSelector>
-                {/*//! AM/PM causing negatives, either fix it in the calc or change local (IOS won't work) */}
                 <DurationPicker
                     fromValue={
                         editState.durationFrom === undefined
@@ -166,7 +165,7 @@ function Entry(props: {
     } else {
         if (props.entryData.submitAction != "add") {
             return (
-                <>
+                <View style={{ height: "100%" }}>
                     <PaperText
                         variant="titleLarge"
                         style={{
@@ -201,19 +200,11 @@ function Entry(props: {
                     <PaperText style={{ paddingVertical: 30 }}>
                         {entryState.desc}
                     </PaperText>
-                    <FAB
-                        icon={"pencil"}
-                        style={styles.fab}
-                        onPress={() => {
-                            editDispatch({ type: "SET_SUBMIT", payload: true });
-                            setEditingActive(true);
-                        }}
-                    ></FAB>
-                </>
+                </View>
             );
         } else {
             return (
-                <>
+                <View style={{ height: "100%" }}>
                     <PaperText style={{ textAlign: "center" }}>
                         No entry for today. Add one?
                     </PaperText>
@@ -225,7 +216,7 @@ function Entry(props: {
                             setEditingActive(true);
                         }}
                     ></FAB>
-                </>
+                </View>
             );
         }
     }
@@ -234,8 +225,8 @@ function Entry(props: {
 const styles = StyleSheet.create({
     fab: {
         position: "absolute",
-        top: 500,
-        right: 0,
+        bottom: -10,
+        right: -15,
     },
 });
 
