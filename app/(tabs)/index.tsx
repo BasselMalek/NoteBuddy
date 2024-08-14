@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { PitchDetector } from "react-native-pitch-detector";
-import { StatusBar } from "expo-status-bar";
 import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import calcMidi from "@/constants/MidiNotes";
 import { PaperProvider, FAB, Text as PaperText } from "react-native-paper";
-import { getAdaptaiveTheme, LightTheme, DarkTheme } from "@/constants/Colors";
+import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function index() {
@@ -17,9 +16,6 @@ export default function index() {
     const [fill, setFill] = useState<number>(0);
 
     async function startTuner() {
-        {
-            //TODO(2): Add some sort of buffering and averaging to avoid noise or the occasional harmonic making the tuner spazm
-        }
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
         if (status != RESULTS.GRANTED) {
             const permReq = await request(PERMISSIONS.ANDROID.RECORD_AUDIO);
@@ -56,7 +52,6 @@ export default function index() {
                 }}
             >
                 <View style={styles.rootContainer}>
-                    <StatusBar style="auto"></StatusBar>
                     <MaterialCommunityIcons
                         size={32}
                         name="music-note"
@@ -86,7 +81,7 @@ export default function index() {
                             width={10}
                             tintColor={getAdaptaiveTheme().colors.tertiary}
                             backgroundColor={
-                                getAdaptaiveTheme().colors.primaryContainer
+                                getAdaptaiveTheme().colors.surfaceVariant
                             }
                         >
                             {(fill) => {
