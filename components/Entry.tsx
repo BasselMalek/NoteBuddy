@@ -206,9 +206,15 @@ function Entry(props: {
             return (
                 <View style={{ height: "100%" }}>
                     <PaperText style={{ textAlign: "center" }}>
-                        No entry for today. Add one?
+                        No entry for today.
                     </PaperText>
                     <FAB
+                        disabled={
+                            !(
+                                props.entryData.date.toDateString() ===
+                                new Date().toDateString()
+                            )
+                        }
                         style={styles.fab}
                         icon={"plus"}
                         onPress={() => {

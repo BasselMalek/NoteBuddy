@@ -32,10 +32,10 @@ function ThemeableChart(props: {
             color={props.lineColor}
             hideRules
             showVerticalLines
-            verticalLinesColor={"rgba(106, 219, 167,0.1)"}
-            focusedDataPointColor={"rgba(124, 45, 18,1)"}
+            verticalLinesColor={`rgba(${props.lineColor.slice(5, -1)},0.1)`}
+            // focusedDataPointColor={"rgba(124, 45, 18,1)"}
             unFocusOnPressOut
-            dataPointsColor={"rgba(106, 219, 167,0.7)"}
+            dataPointsColor={`rgba(${props.lineColor.slice(5, -1)},0.7)`}
             yAxisThickness={-8}
             xAxisThickness={0}
             hideYAxisText={true}
@@ -49,4 +49,4 @@ function ThemeableChart(props: {
     );
 }
 
-export { ThemeableChart };
+export { ThemeableChart, lineDataItem };

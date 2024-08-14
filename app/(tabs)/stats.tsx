@@ -1,12 +1,6 @@
-import {
-    Text as PaperText,
-    Card,
-    PaperProvider,
-    SegmentedButtons,
-} from "react-native-paper";
-import { ThemeableChart } from "@/components/ThemeableChart";
+import { Text as PaperText, Card, PaperProvider } from "react-native-paper";
+import { ThemeableChart, lineDataItem } from "@/components/ThemeableChart";
 import { View, StyleSheet } from "react-native";
-import EquipmentWall from "@/components/EquipmentWall";
 import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StreakCircle from "@/components/StreakCircle";
@@ -27,8 +21,8 @@ export default function Account() {
         ownedEquipmentIds: [],
     });
     const [totalDays, setTotalDays] = useState(0);
-    const [dataDiff, setDataDiff] = useState<any>();
-    const [dataDur, setDataDur] = useState<any>();
+    const [dataDiff, setDataDiff] = useState<lineDataItem[]>();
+    const [dataDur, setDataDur] = useState<lineDataItem[]>();
     const [chartHeight, setChartHeight] = useState(0);
     const [chartWidth, setChartWidth] = useState(0);
     const [highlightedDiff, setHighlightedDiff] =
@@ -217,17 +211,6 @@ export default function Account() {
                                             {totalDays}
                                         </PaperText>
                                     </PaperText>
-                                    {/* <PaperText style={styles.item}>
-                                        {"Avg. Duration\n"}
-                                        <PaperText
-                                            style={{
-                                                alignSelf: "center",
-                                                lineHeight: 28,
-                                            }}
-                                        >
-                                            {avgDur}
-                                        </PaperText>
-                                    </PaperText> */}
                                 </View>
                                 <View style={{ flexDirection: "row", gap: 5 }}>
                                     <PaperText style={styles.item}>
@@ -244,22 +227,10 @@ export default function Account() {
                                                 : activeUser!.longestStreak}
                                         </PaperText>
                                     </PaperText>
-                                    {/* <PaperText style={styles.item}>
-                                        {"Avg. Difficulty\n"}
-                                        <PaperText
-                                            style={{
-                                                alignSelf: "center",
-                                                lineHeight: 28,
-                                            }}
-                                        >
-                                            {avgDiff}
-                                        </PaperText>
-                                    </PaperText> */}
                                 </View>
                             </View>
                         </Card>
                     </View>
-                    {/* <View style={{ flex: 5, flexDirection: "row", gap: 5 }}> */}
                     <Card
                         style={{
                             ...styles.card,
@@ -315,20 +286,22 @@ export default function Account() {
                         <View>
                             <View style={styles.chartHighlight}>
                                 <PaperText style={styles.chartHighlightText}>
-                                    {highlightedDur}
+                                    {dataDur?.length! < 3
+                                        ? "Log more entires to acccess stats"
+                                        : highlightedDur}
                                 </PaperText>
                             </View>
                             <ThemeableChart
-                                data={dataDur}
+                                data={dataDur?.length! < 3 ? [] : dataDur!}
                                 width={chartWidth + 1}
                                 highlightFunction={(item: any) => {
                                     setHighlightedDur(item.dataPointText);
                                 }}
                                 //* Change it to 85 when seg buttons are used.
                                 height={chartHeight - 48}
-                                lineColor="rgba(106, 219, 167,1)"
-                                startColor="rgba(106, 219, 167,1)"
-                                endColor="rgba(106, 219, 167,1)"
+                                lineColor={getAdaptaiveTheme().colors.tertiary}
+                                startColor={getAdaptaiveTheme().colors.tertiary}
+                                endColor={getAdaptaiveTheme().colors.tertiary}
                             />
                         </View>
                     </Card>
@@ -383,20 +356,22 @@ export default function Account() {
                         <View>
                             <View style={styles.chartHighlight}>
                                 <PaperText style={styles.chartHighlightText}>
-                                    {highlightedDiff}
+                                    {dataDur?.length! < 3
+                                        ? "Log more entires to acccess stats"
+                                        : highlightedDiff}
                                 </PaperText>
                             </View>
 
                             <ThemeableChart
-                                data={dataDiff}
+                                data={dataDiff?.length! < 3 ? [] : dataDiff!}
                                 width={chartWidth + 1}
                                 highlightFunction={(item: any) => {
                                     setHighlightedDiff(item.dataPointText);
                                 }}
                                 height={chartHeight - 48}
-                                lineColor="rgba(106, 219, 167,1)"
-                                startColor="rgba(106, 219, 167,1)"
-                                endColor="rgba(106, 219, 167,1)"
+                                lineColor={getAdaptaiveTheme().colors.tertiary}
+                                startColor={getAdaptaiveTheme().colors.tertiary}
+                                endColor={getAdaptaiveTheme().colors.tertiary}
                             />
                         </View>
                     </Card>
