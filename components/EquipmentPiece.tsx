@@ -6,6 +6,7 @@ import {
     ImageSourcePropType,
 } from "react-native";
 import { Text as PaperText } from "react-native-paper";
+import { Shadow } from "react-native-shadow-2";
 
 export default function EquipmentPiece(props: {
     resource: ImageSourcePropType | undefined;
@@ -15,20 +16,18 @@ export default function EquipmentPiece(props: {
         <View
             style={{
                 flex: 1,
-                height: 295,
-                width: 90,
+                height: 355,
+                width: 100,
                 flexDirection: "column",
                 marginHorizontal: 20,
             }}
         >
             <Image
                 source={props.resource}
-                // resizeMethod="scale"
-                // resizeMode="cover"
+                resizeMode="contain"
                 style={{
-                    height: "100%",
-                    width: undefined,
-                    borderWidth: 10,
+                    height: 300,
+                    width: 100,
                     marginBottom: 5,
                 }}
             />

@@ -22,7 +22,6 @@ function Ticker(props: {
     bpm: number;
 }) {
     const translateX = useSharedValue<number>(0);
-    const colorShift = useSharedValue<number>(0);
     const tickerSpringConfig = {
         duration: 60000 / props.bpm,
         dampingRatio: 0.5,
@@ -30,10 +29,6 @@ function Ticker(props: {
         restDisplacementThreshold: 100,
         overshootClamping: true,
     };
-    useEffect(() => {
-        colorShift.value = props.metronomeStatus ? 1 : 0;
-    }, [props.metronomeStatus]);
-
     const tickerAnimatedStyle = useAnimatedStyle(() => ({
         transform: [
             {
@@ -60,11 +55,6 @@ function Ticker(props: {
                     : withSpring(0),
             },
         ],
-        backgroundColor: interpolateColor(
-            colorShift.value,
-            [0, 1],
-            [props.sourceColor, props.targetColor]
-        ),
     }));
 
     return (
@@ -87,6 +77,7 @@ function Ticker(props: {
                         width: 40,
                         borderRadius: 200,
                         marginVertical: 50,
+                        backgroundColor: props.targetColor,
                         alignSelf: "center",
                         elevation: 5,
                     },
@@ -96,13 +87,5 @@ function Ticker(props: {
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-});
 
 export { Ticker, TimeSignature };

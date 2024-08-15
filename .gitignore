@@ -10,7 +10,7 @@ npm-debug.*
 *.orig.*
 web-build/
 *.ps1
-assets
+assets/images/dev
 # macOS
 .DS_Store
 
