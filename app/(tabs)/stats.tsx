@@ -21,8 +21,8 @@ export default function Account() {
         ownedEquipmentIds: [],
     });
     const [totalDays, setTotalDays] = useState(0);
-    const [dataDiff, setDataDiff] = useState<lineDataItem[]>();
-    const [dataDur, setDataDur] = useState<lineDataItem[]>();
+    const [dataDiff, setDataDiff] = useState<lineDataItem[]>([]);
+    const [dataDur, setDataDur] = useState<lineDataItem[]>([]);
     const [chartHeight, setChartHeight] = useState(0);
     const [chartWidth, setChartWidth] = useState(0);
     const [highlightedDiff, setHighlightedDiff] =
@@ -63,45 +63,6 @@ export default function Account() {
                 }
                 setDataDur(durSet);
             }
-            // // else {
-            // //     Array.from({ length: 12 }, (v, i) => i + 1).map(
-            // //         async (v, i) => {
-            // //             const start = new Date(
-            // //                     `${currentDay.getFullYear()}-0${v}-01`
-            // //                 ),
-            // //                 end = new Date(
-            // //                     new Date(
-            // //                         `${currentDay.getFullYear()}-0${v + 1}-01`
-            // //                     ).getTime() -
-            // //                         24 * 60 * 60 * 1000
-            // //                 );
-            // //             console.log(
-            // //                 start.toISOString() + " " + end.toISOString()
-            // //             );
-            // //             const aggDur = await LiveCRUD!.aggregateDur(start, end);
-            // //             console.log(aggDur);
-
-            // //             let monthAvg = 0;
-            // //             for (const dur of aggDur) {
-            // //                 monthAvg += dur.duration;
-            // //             }
-            // //             const val =
-            // //                 monthAvg /
-            // //                 (((end.getTime() - start.getTime()) / 24) *
-            // //                     60 *
-            // //                     60 *
-            // //                     1000);
-            // //             durSet.push({
-            // //                 dataPointText: `${start.getMonth()}\n${
-            // //                     Number.isNaN(val)
-            // //                         ? "0hrs 0m"
-            // //                         : unixIntToString(val)
-            // //                 }`,
-            // //                 value: val,
-            // //             });
-            // //         }
-            // //     );
-            // // }
         })();
     }, [LiveCRUD, durationGraphScale]);
 
@@ -128,6 +89,7 @@ export default function Account() {
             })();
         }
     }, [LiveCRUD, difficultyGraphScale]);
+    console.log(dataDiff.length);
 
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
@@ -292,7 +254,8 @@ export default function Account() {
                                 </PaperText>
                             </View>
                             <ThemeableChart
-                                data={dataDur?.length! < 3 ? [] : dataDur!}
+                                hidden={dataDur?.length < 3}
+                                data={dataDur!}
                                 width={chartWidth + 1}
                                 highlightFunction={(item: any) => {
                                     setHighlightedDur(item.dataPointText);
@@ -361,9 +324,9 @@ export default function Account() {
                                         : highlightedDiff}
                                 </PaperText>
                             </View>
-
                             <ThemeableChart
-                                data={dataDiff?.length! < 3 ? [] : dataDiff!}
+                                hidden={dataDiff?.length < 3}
+                                data={dataDiff!}
                                 width={chartWidth + 1}
                                 highlightFunction={(item: any) => {
                                     setHighlightedDiff(item.dataPointText);
@@ -375,12 +338,6 @@ export default function Account() {
                             />
                         </View>
                     </Card>
-                    {/* </View> */}
-                    {/* <Card style={{ ...styles.card, flex: 7 }}>
-                        <EquipmentWall
-                            resource={require("../../assets/images/Melamine-wood-004.png")}
-                        ></EquipmentWall>
-                    </Card> */}
                 </View>
             </View>
         </PaperProvider>
@@ -399,7 +356,6 @@ const styles = StyleSheet.create({
         overflow: "hidden",
     },
     cardTitle: {
-        // color: getAdaptaiveTheme().colors.onTertiaryContainer,
         marginBottom: 5,
     },
     row: {
@@ -408,7 +364,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     item: {
-        // marginHorizontal: 5,
         flex: 1,
         textAlign: "center",
     },

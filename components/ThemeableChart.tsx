@@ -1,6 +1,6 @@
 import { LineChart, lineDataItem } from "react-native-gifted-charts";
-
 function ThemeableChart(props: {
+    hidden: boolean;
     data: lineDataItem[];
     highlightFunction: Function;
     width: number;
@@ -43,8 +43,8 @@ function ThemeableChart(props: {
             yAxisLabelWidth={0}
             xAxisLabelsHeight={0}
             textColor={"rgba(106, 219, 167,0)"}
-            isAnimated
-            animateOnDataChange
+            // isAnimated
+            // animateOnDataChange
         />
     );
 }
