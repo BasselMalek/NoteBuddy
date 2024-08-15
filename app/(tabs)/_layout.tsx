@@ -1,19 +1,15 @@
-import { Tabs, useRouter } from "expo-router";
+import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CommonActions } from "@react-navigation/native";
 import {
     BottomNavigation,
-    adaptNavigationTheme,
-    MD3DarkTheme as DefaultDark,
     PaperProvider,
-    MD3LightTheme,
-    MD3DarkTheme,
     Portal,
     Modal,
 } from "react-native-paper";
 import { LightTheme, DarkTheme, getAdaptaiveTheme } from "@/constants/Colors";
 import { useColorScheme } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import {
     CRUDService,
@@ -28,25 +24,25 @@ import CreateUserForm from "@/components/CreateUserForm";
 const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 10000 } },
 });
-//! WILL ALWAYS FAIL ON FIRST LAUNCH. ADD DELAY TO CRUD INIT TO PREVENT ERROR
-let activeCrud: CRUDService = null;
-let profileExists = false;
-
-(async () => {
-    await firstTimeSetup("PracticeEntries.db");
-    activeCrud = await initializeCRUDService("PracticeEntries.db");
-    const prof = await AsyncStorage.getItem("MainUser");
-    profileExists = prof === null ? false : true;
-})();
 export default function RootLayout() {
+    const [activeCrud, setActiveCrud] = useState<CRUDService>();
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const currentTheme = useColorScheme() ?? "light";
     const [activeTheme, setActiveTheme] = useState(
         currentTheme === "light" ? LightTheme : DarkTheme
     );
-    const [isModalVisible, setIsModalVisible] = useState(!profileExists);
+    useEffect(() => {
+        (async () => {
+            await firstTimeSetup("PracticeEntries.db");
+            const crud = await initializeCRUDService("PracticeEntries.db");
+            setActiveCrud(crud);
+            const prof = await AsyncStorage.getItem("MainUser");
+            setIsModalVisible(prof === null ? true : false);
+        })();
+    }, []);
 
     return (
-        <CRUDProvider value={activeCrud}>
+        <CRUDProvider value={activeCrud!}>
             <QueryClientProvider client={queryClient}>
                 <PaperProvider theme={activeTheme}>
                     <Portal>
