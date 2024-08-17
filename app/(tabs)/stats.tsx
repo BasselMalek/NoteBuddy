@@ -6,7 +6,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StreakCircle from "@/components/StreakCircle";
 import { useCRUDService, readUser, MusicianUser } from "@/hooks/useCRUD";
 import { unixIntToString } from "@/components/Entry";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 const currentDay = new Date();
 const sevenBack = new Date(currentDay.getTime() - 6 * 24 * 60 * 60 * 1000);
@@ -34,62 +35,104 @@ export default function Account() {
     const LiveCRUD = useCRUDService();
     const safeInsets = useSafeAreaInsets();
 
-    useEffect(() => {
-        (async () => {
-            const count = await LiveCRUD!.countDays();
-            setTotalDays(count!.days);
-            const act = await readUser();
-            setActiveUser(act!);
-        })();
-    }, [LiveCRUD]);
-
-    useEffect(() => {
-        (async () => {
-            let durSet = [];
-            if (durationGraphScale === "7D" || durationGraphScale === "30D") {
-                const aggDur = await LiveCRUD!.aggregateDur(
-                    durationGraphScale === "7D" ? sevenBack : thirtyBack,
-                    currentDay
-                );
-                for (const dur of aggDur) {
-                    durSet.push({
-                        dataPointText: `${dur.date}\n${
-                            Number.isNaN(dur.duration)
-                                ? "0hrs 0m"
-                                : unixIntToString(dur.duration)
-                        }`,
-                        value: Math.floor(dur.duration / 1000 / 60),
-                    });
-                }
-                setDataDur(durSet);
-            }
-        })();
-    }, [LiveCRUD, durationGraphScale]);
-
-    useEffect(() => {
-        if (LiveCRUD != null) {
+    useFocusEffect(
+        useCallback(() => {
             (async () => {
-                let diffSet = [];
+                const count = await LiveCRUD!.countDays();
+                setTotalDays(count!.days);
+                const act = await readUser();
+                setActiveUser(act!);
+                let durSet = [];
                 if (
-                    difficultyGraphScale === "7D" ||
-                    difficultyGraphScale === "30D"
+                    durationGraphScale === "7D" ||
+                    durationGraphScale === "30D"
                 ) {
-                    const aggDif = await LiveCRUD!.aggregateDiff(
-                        difficultyGraphScale === "7D" ? sevenBack : thirtyBack,
+                    const aggDur = await LiveCRUD!.aggregateDur(
+                        durationGraphScale === "7D" ? sevenBack : thirtyBack,
                         currentDay
                     );
-                    for (const diff of aggDif) {
-                        diffSet.push({
-                            dataPointText: `${diff.date}\n★${diff.rating}`,
-                            value: diff.rating,
+                    for (const dur of aggDur) {
+                        durSet.push({
+                            dataPointText: `${dur.date}\n${
+                                Number.isNaN(dur.duration)
+                                    ? "0hrs 0m"
+                                    : unixIntToString(dur.duration)
+                            }`,
+                            value: Math.floor(dur.duration / 1000 / 60),
                         });
                     }
-                    setDataDiff(diffSet);
+                    setDataDur(durSet);
+                    let diffSet = [];
+                    if (
+                        difficultyGraphScale === "7D" ||
+                        difficultyGraphScale === "30D"
+                    ) {
+                        const aggDif = await LiveCRUD!.aggregateDiff(
+                            difficultyGraphScale === "7D"
+                                ? sevenBack
+                                : thirtyBack,
+                            currentDay
+                        );
+                        for (const diff of aggDif) {
+                            diffSet.push({
+                                dataPointText: `${diff.date}\n★${diff.rating}`,
+                                value: diff.rating,
+                            });
+                        }
+                        setDataDiff(diffSet);
+                    }
                 }
             })();
-        }
-    }, [LiveCRUD, difficultyGraphScale]);
-    console.log(dataDiff.length);
+        }, [LiveCRUD])
+    );
+
+    // useEffect(() => {
+    //     (async () => {
+    //         let durSet = [];
+    //         if (durationGraphScale === "7D" || durationGraphScale === "30D") {
+    //             const aggDur = await LiveCRUD!.aggregateDur(
+    //                 durationGraphScale === "7D" ? sevenBack : thirtyBack,
+    //                 currentDay
+    //             );
+    //             for (const dur of aggDur) {
+    //                 durSet.push({
+    //                     dataPointText: `${dur.date}\n${
+    //                         Number.isNaN(dur.duration)
+    //                             ? "0hrs 0m"
+    //                             : unixIntToString(dur.duration)
+    //                     }`,
+    //                     value: Math.floor(dur.duration / 1000 / 60),
+    //                 });
+    //             }
+    //             setDataDur(durSet);
+    //         }
+    //     })();
+    // }, [LiveCRUD, durationGraphScale]);
+
+    // useEffect(() => {
+    //     if (LiveCRUD != null) {
+    //         (async () => {
+    //             let diffSet = [];
+    //             if (
+    //                 difficultyGraphScale === "7D" ||
+    //                 difficultyGraphScale === "30D"
+    //             ) {
+    //                 const aggDif = await LiveCRUD!.aggregateDiff(
+    //                     difficultyGraphScale === "7D" ? sevenBack : thirtyBack,
+    //                     currentDay
+    //                 );
+    //                 for (const diff of aggDif) {
+    //                     diffSet.push({
+    //                         dataPointText: `${diff.date}\n★${diff.rating}`,
+    //                         value: diff.rating,
+    //                     });
+    //                 }
+    //                 setDataDiff(diffSet);
+    //             }
+    //         })();
+    //     }
+    // }, [LiveCRUD, difficultyGraphScale]);
+    console.log(dataDiff);
 
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
@@ -248,13 +291,13 @@ export default function Account() {
                         <View>
                             <View style={styles.chartHighlight}>
                                 <PaperText style={styles.chartHighlightText}>
-                                    {dataDur?.length! < 3
+                                    {dataDur.length! < 3
                                         ? "Log more entires to acccess stats"
                                         : highlightedDur}
                                 </PaperText>
                             </View>
                             <ThemeableChart
-                                hidden={dataDur?.length < 3}
+                                hidden={dataDur.length < 3}
                                 data={dataDur!}
                                 width={chartWidth + 1}
                                 highlightFunction={(item: any) => {
@@ -319,13 +362,13 @@ export default function Account() {
                         <View>
                             <View style={styles.chartHighlight}>
                                 <PaperText style={styles.chartHighlightText}>
-                                    {dataDur?.length! < 3
+                                    {dataDur.length! < 3
                                         ? "Log more entires to acccess stats"
                                         : highlightedDiff}
                                 </PaperText>
                             </View>
                             <ThemeableChart
-                                hidden={dataDiff?.length < 3}
+                                hidden={dataDiff.length < 3}
                                 data={dataDiff!}
                                 width={chartWidth + 1}
                                 highlightFunction={(item: any) => {
