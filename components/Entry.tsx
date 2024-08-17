@@ -1,11 +1,11 @@
 import { useState, useEffect, useReducer } from "react";
 import { View, StyleProp, StyleSheet, ScrollView } from "react-native";
-import { getAdaptaiveTheme } from "@/constants/Colors";
 import {
     Text as PaperText,
     FAB,
     TextInput,
     Button as PaperButton,
+    useTheme,
 } from "react-native-paper";
 import DurationPicker from "@/components/DurationPicker";
 import RatingSelector from "@/components/RatingSelector";
@@ -56,7 +56,7 @@ function Entry(props: {
     entryData: EntryData;
     onEntryChangeHandler: Function;
 }) {
-    const themedStars = getAdaptaiveTheme().colors.secondary;
+    const activeTheme = useTheme();
     const [editingActive, setEditingActive] = useState(false);
     const [entryState, entryDispatch] = useReducer(entryReducer, {}, (arg) => ({
         ...props.entryData,
@@ -102,7 +102,7 @@ function Entry(props: {
                             payload: entryRating,
                         });
                     }}
-                    starColor={themedStars}
+                    starColor={activeTheme.colors.secondary}
                 ></RatingSelector>
                 <DurationPicker
                     fromValue={

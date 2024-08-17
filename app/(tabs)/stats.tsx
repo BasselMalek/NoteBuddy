@@ -1,7 +1,11 @@
-import { Text as PaperText, Card, PaperProvider } from "react-native-paper";
+import {
+    Text as PaperText,
+    Card,
+    PaperProvider,
+    useTheme,
+} from "react-native-paper";
 import { ThemeableChart, lineDataItem } from "@/components/ThemeableChart";
 import { View, StyleSheet } from "react-native";
-import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StreakCircle from "@/components/StreakCircle";
 import { useCRUDService, readUser, MusicianUser } from "@/hooks/useCRUD";
@@ -31,7 +35,7 @@ export default function Account() {
     const [highlightedDur, setHighlightedDur] = useState("Press to highlight");
     const [durationGraphScale, setDurationGraphScale] = useState("7D");
     const [difficultyGraphScale, setdifficultyGraphScale] = useState("7D");
-
+    const activeTheme = useTheme();
     const LiveCRUD = useCRUDService();
     const safeInsets = useSafeAreaInsets();
 
@@ -87,127 +91,119 @@ export default function Account() {
     );
 
     return (
-        <PaperProvider theme={getAdaptaiveTheme()}>
-            <View
-                style={{
-                    flex: 1,
-                    paddingTop: safeInsets.top + 5,
-                    paddingBottom: safeInsets.bottom,
-                    paddingRight: safeInsets.right,
-                    paddingLeft: safeInsets.left,
-                }}
-            >
-                <View style={styles.rootContainer}>
-                    <View style={{ flex: 4, flexDirection: "row", gap: 5 }}>
-                        <Card
-                            style={{
-                                ...styles.card,
-                                flex: 6,
-                            }}
-                        >
-                            <PaperText
-                                style={{
-                                    color: getAdaptaiveTheme().colors
-                                        .onTertiaryContainer,
-                                    marginBottom: 5,
-                                }}
-                            >
-                                {"Streak"}
-                            </PaperText>
-                            <View
-                                style={{
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
-                                <StreakCircle
-                                    level={activeUser?.currentStreak}
-                                    filled={getAdaptaiveTheme().colors.tertiary}
-                                    unfilled={
-                                        getAdaptaiveTheme().colors
-                                            .surfaceVariant
-                                    }
-                                />
-                            </View>
-                        </Card>
-                        <Card
-                            style={{
-                                ...styles.card,
-                                paddingHorizontal: 10,
-                                flex: 13,
-                            }}
-                        >
-                            <PaperText
-                                style={{
-                                    color: getAdaptaiveTheme().colors
-                                        .onTertiaryContainer,
-                                    marginBottom: 5,
-                                }}
-                            >
-                                {"Stats"}
-                            </PaperText>
-                            <View
-                                style={{
-                                    borderRadius: 10,
-                                    backgroundColor: "rgba(10,10,10,0.3)",
-                                    flexDirection: "column",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                    padding: 5,
-                                }}
-                            >
-                                <View style={{ flexDirection: "row", gap: 5 }}>
-                                    <PaperText style={styles.item}>
-                                        {"Days Practiced\n"}
-                                        <PaperText
-                                            style={{
-                                                alignSelf: "center",
-                                                lineHeight: 28,
-                                            }}
-                                        >
-                                            {totalDays}
-                                        </PaperText>
-                                    </PaperText>
-                                </View>
-                                <View style={{ flexDirection: "row", gap: 5 }}>
-                                    <PaperText style={styles.item}>
-                                        {"Longest Streak\n"}
-                                        <PaperText
-                                            style={{
-                                                alignSelf: "center",
-                                                lineHeight: 28,
-                                            }}
-                                        >
-                                            {activeUser?.longestStreak ===
-                                            undefined
-                                                ? 0
-                                                : activeUser!.longestStreak}
-                                        </PaperText>
-                                    </PaperText>
-                                </View>
-                            </View>
-                        </Card>
-                    </View>
+        <View
+            style={{
+                flex: 1,
+                paddingTop: safeInsets.top + 5,
+                paddingBottom: safeInsets.bottom,
+                paddingRight: safeInsets.right,
+                paddingLeft: safeInsets.left,
+            }}
+        >
+            <View style={styles.rootContainer}>
+                <View style={{ flex: 4, flexDirection: "row", gap: 5 }}>
                     <Card
                         style={{
                             ...styles.card,
-                            flex: 7,
-                        }}
-                        onLayout={(e) => {
-                            setChartHeight(e.nativeEvent.layout.height);
-                            setChartWidth(e.nativeEvent.layout.width);
+                            flex: 6,
                         }}
                     >
                         <PaperText
                             style={{
-                                color: getAdaptaiveTheme().colors
-                                    .onTertiaryContainer,
-                                marginBottom: 10,
+                                color: activeTheme.colors.onTertiaryContainer,
+                                marginBottom: 5,
                             }}
                         >
-                            {"Duration"}
+                            {"Streak"}
                         </PaperText>
-                        {/* <SegmentedButtons
+                        <View
+                            style={{
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <StreakCircle
+                                level={activeUser?.currentStreak}
+                                filled={activeTheme.colors.tertiary}
+                                unfilled={activeTheme.colors.surfaceVariant}
+                            />
+                        </View>
+                    </Card>
+                    <Card
+                        style={{
+                            ...styles.card,
+                            paddingHorizontal: 10,
+                            flex: 13,
+                        }}
+                    >
+                        <PaperText
+                            style={{
+                                color: activeTheme.colors.onTertiaryContainer,
+                                marginBottom: 5,
+                            }}
+                        >
+                            {"Stats"}
+                        </PaperText>
+                        <View
+                            style={{
+                                borderRadius: 10,
+                                backgroundColor: "rgba(10,10,10,0.3)",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                padding: 5,
+                            }}
+                        >
+                            <View style={{ flexDirection: "row", gap: 5 }}>
+                                <PaperText style={styles.item}>
+                                    {"Days Practiced\n"}
+                                    <PaperText
+                                        style={{
+                                            alignSelf: "center",
+                                            lineHeight: 28,
+                                        }}
+                                    >
+                                        {totalDays}
+                                    </PaperText>
+                                </PaperText>
+                            </View>
+                            <View style={{ flexDirection: "row", gap: 5 }}>
+                                <PaperText style={styles.item}>
+                                    {"Longest Streak\n"}
+                                    <PaperText
+                                        style={{
+                                            alignSelf: "center",
+                                            lineHeight: 28,
+                                        }}
+                                    >
+                                        {activeUser?.longestStreak === undefined
+                                            ? 0
+                                            : activeUser!.longestStreak}
+                                    </PaperText>
+                                </PaperText>
+                            </View>
+                        </View>
+                    </Card>
+                </View>
+                <Card
+                    style={{
+                        ...styles.card,
+                        flex: 7,
+                    }}
+                    onLayout={(e) => {
+                        setChartHeight(e.nativeEvent.layout.height);
+                        setChartWidth(e.nativeEvent.layout.width);
+                    }}
+                >
+                    <PaperText
+                        style={{
+                            color: activeTheme.colors.onTertiaryContainer,
+                            marginBottom: 10,
+                        }}
+                    >
+                        {"Duration"}
+                    </PaperText>
+                    {/* <SegmentedButtons
                             value={durationGraphScale}
                             onValueChange={(value) => {
                                 setDurationGraphScale(value);
@@ -240,69 +236,67 @@ export default function Account() {
                                 },
                             ]}
                         /> */}
-                        <View>
-                            <View style={styles.chartHighlight}>
-                                <PaperText style={styles.chartHighlightText}>
-                                    {dataDur.length! < 3
-                                        ? "Log more entires to acccess stats"
-                                        : highlightedDur}
-                                </PaperText>
-                            </View>
-                            <ThemeableChart
-                                hidden={dataDur.length < 3}
-                                data={dataDur!}
-                                width={chartWidth + 1}
-                                highlightFunction={(item: any) => {
-                                    setHighlightedDur(item.dataPointText);
-                                }}
-                                //* Change it to 85 when seg buttons are used.
-                                height={chartHeight - 48}
-                                lineColor={getAdaptaiveTheme().colors.tertiary}
-                                startColor={getAdaptaiveTheme().colors.tertiary}
-                                endColor={getAdaptaiveTheme().colors.tertiary}
-                            />
+                    <View>
+                        <View style={styles.chartHighlight}>
+                            <PaperText style={styles.chartHighlightText}>
+                                {dataDur.length! < 3
+                                    ? "Log more entires to acccess stats"
+                                    : highlightedDur}
+                            </PaperText>
                         </View>
-                    </Card>
-                    <Card
+                        <ThemeableChart
+                            hidden={dataDur.length < 3}
+                            data={dataDur!}
+                            width={chartWidth + 1}
+                            highlightFunction={(item: any) => {
+                                setHighlightedDur(item.dataPointText);
+                            }}
+                            //* Change it to 85 when seg buttons are used.
+                            height={chartHeight - 48}
+                            lineColor={activeTheme.colors.tertiary}
+                            startColor={activeTheme.colors.tertiary}
+                            endColor={activeTheme.colors.tertiary}
+                        />
+                    </View>
+                </Card>
+                <Card
+                    style={{
+                        ...styles.card,
+                        flex: 7,
+                    }}
+                >
+                    <PaperText
                         style={{
-                            ...styles.card,
-                            flex: 7,
+                            color: activeTheme.colors.onTertiaryContainer,
+                            marginBottom: 10,
                         }}
                     >
-                        <PaperText
-                            style={{
-                                color: getAdaptaiveTheme().colors
-                                    .onTertiaryContainer,
-                                marginBottom: 10,
-                            }}
-                        >
-                            {"Difficulty"}
-                        </PaperText>
-                        <View>
-                            <View style={styles.chartHighlight}>
-                                <PaperText style={styles.chartHighlightText}>
-                                    {dataDur.length! < 3
-                                        ? "Log more entires to acccess stats"
-                                        : highlightedDiff}
-                                </PaperText>
-                            </View>
-                            <ThemeableChart
-                                hidden={dataDiff.length < 3}
-                                data={dataDiff!}
-                                width={chartWidth + 1}
-                                highlightFunction={(item: any) => {
-                                    setHighlightedDiff(item.dataPointText);
-                                }}
-                                height={chartHeight - 48}
-                                lineColor={getAdaptaiveTheme().colors.tertiary}
-                                startColor={getAdaptaiveTheme().colors.tertiary}
-                                endColor={getAdaptaiveTheme().colors.tertiary}
-                            />
+                        {"Difficulty"}
+                    </PaperText>
+                    <View>
+                        <View style={styles.chartHighlight}>
+                            <PaperText style={styles.chartHighlightText}>
+                                {dataDur.length! < 3
+                                    ? "Log more entires to acccess stats"
+                                    : highlightedDiff}
+                            </PaperText>
                         </View>
-                    </Card>
-                </View>
+                        <ThemeableChart
+                            hidden={dataDiff.length < 3}
+                            data={dataDiff!}
+                            width={chartWidth + 1}
+                            highlightFunction={(item: any) => {
+                                setHighlightedDiff(item.dataPointText);
+                            }}
+                            height={chartHeight - 48}
+                            lineColor={activeTheme.colors.tertiary}
+                            startColor={activeTheme.colors.tertiary}
+                            endColor={activeTheme.colors.tertiary}
+                        />
+                    </View>
+                </Card>
             </View>
-        </PaperProvider>
+        </View>
     );
 }
 

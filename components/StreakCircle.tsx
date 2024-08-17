@@ -1,9 +1,4 @@
-import { ImageSourcePropType, StyleSheet, View } from "react-native";
-import { useState } from "react";
 import { Text as PaperText } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
-import { Fontisto } from "@expo/vector-icons";
-import { getAdaptaiveTheme } from "@/constants/Colors";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 
 const CONSISTBONUS = {

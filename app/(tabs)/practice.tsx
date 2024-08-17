@@ -4,10 +4,10 @@ import {
     Text as PaperText,
     PaperProvider,
     Button,
+    useTheme,
 } from "react-native-paper";
 import { Entry, EntryData } from "@/components/Entry";
 import React, { useEffect, useState, Suspense } from "react";
-import { getAdaptaiveTheme } from "@/constants/Colors";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +16,7 @@ const currentDay = new Date();
 
 export default function Practice() {
     const safeInsets = useSafeAreaInsets();
+    const activeTheme = useTheme();
     const LiveCRUD = useCRUDService();
     const [selectedDate, setSelectedDate] = useState(currentDay);
     const [reloadFlag, setReloadFlag] = useState(false);
@@ -57,115 +58,111 @@ export default function Practice() {
     }, [selectedDate, LiveCRUD, reloadFlag]);
 
     return (
-        <PaperProvider theme={getAdaptaiveTheme()}>
-            <View
-                style={{
-                    flex: 1,
-                    paddingTop: safeInsets.top + 5,
-                    paddingBottom: safeInsets.bottom,
-                    paddingRight: safeInsets.right,
-                    paddingLeft: safeInsets.left,
-                }}
-            >
-                <View style={styles.rootContainer}>
-                    <View
+        <View
+            style={{
+                flex: 1,
+                paddingTop: safeInsets.top + 5,
+                paddingBottom: safeInsets.bottom,
+                paddingRight: safeInsets.right,
+                paddingLeft: safeInsets.left,
+            }}
+        >
+            <View style={styles.rootContainer}>
+                <View
+                    style={{
+                        margin: 20,
+                        flexDirection: "row",
+                        alignSelf: "center",
+                        justifyContent: "center",
+                        paddingHorizontal: 20,
+                        gap: 10,
+                    }}
+                >
+                    <Button
+                        compact
                         style={{
-                            margin: 20,
-                            flexDirection: "row",
-                            alignSelf: "center",
-                            justifyContent: "center",
-                            paddingHorizontal: 20,
-                            gap: 10,
+                            borderRadius: 12,
+                            width: 50,
+                        }}
+                        mode="elevated"
+                        onPress={() => {
+                            setSelectedDate(
+                                new Date(
+                                    selectedDate.getTime() -
+                                        1 * 24 * 3600 * 1000
+                                )
+                            );
                         }}
                     >
-                        <Button
-                            compact
+                        {"<"}
+                    </Button>
+                    {
+                        //TODO: make pressable to open a date selector.
+                    }
+                    <View
+                        style={{
+                            backgroundColor:
+                                activeTheme.colors.elevation.level1,
+                            elevation: 5,
+                            borderRadius: 12,
+                            paddingVertical: 10,
+                            paddingHorizontal: 25,
+                            justifyContent: "center",
+                            alignContent: "center",
+                        }}
+                    >
+                        <PaperText
                             style={{
-                                borderRadius: 12,
-                                width: 50,
-                            }}
-                            mode="elevated"
-                            onPress={() => {
-                                setSelectedDate(
-                                    new Date(
-                                        selectedDate.getTime() -
-                                            1 * 24 * 3600 * 1000
-                                    )
-                                );
+                                textAlign: "center",
                             }}
                         >
-                            {"<"}
-                        </Button>
-                        {
-                            //TODO: make pressable to open a date selector.
-                        }
-                        <View
-                            style={{
-                                backgroundColor:
-                                    getAdaptaiveTheme().colors.elevation.level1,
-                                elevation: 5,
-                                borderRadius: 12,
-                                paddingVertical: 10,
-                                paddingHorizontal: 25,
-                                justifyContent: "center",
-                                alignContent: "center",
-                            }}
-                        >
-                            <PaperText
-                                style={{
-                                    textAlign: "center",
-                                }}
-                            >
-                                {selectedDate.toDateString()}
-                            </PaperText>
-                        </View>
-                        <Button
-                            compact
-                            disabled={
-                                selectedDate.toDateString() ===
-                                currentDay.toDateString()
-                            }
-                            style={{
-                                borderRadius: 12,
-                                width: 50,
-                            }}
-                            mode="elevated"
-                            onPress={() => {
-                                setSelectedDate(
-                                    new Date(
-                                        selectedDate.getTime() +
-                                            1 * 24 * 3600 * 1000
-                                    )
-                                );
-                            }}
-                        >
-                            {">"}
-                        </Button>
+                            {selectedDate.toDateString()}
+                        </PaperText>
                     </View>
-                    <Card style={styles.expandedCard}>
-                        <Card.Content>
-                            <Entry
-                                entryData={loadedEntry!}
-                                onEntryChangeHandler={(
-                                    editedEntry: EntryData
-                                ) => {
-                                    entryMutator.mutate(editedEntry, {
-                                        onSuccess: async (data) => {
-                                            if (data === 1) {
-                                                setReloadFlag(true);
-                                            }
-                                        },
-                                        onError: (error) => {
-                                            console.error(error);
-                                        },
-                                    });
-                                }}
-                            />
-                        </Card.Content>
-                    </Card>
+                    <Button
+                        compact
+                        disabled={
+                            selectedDate.toDateString() ===
+                            currentDay.toDateString()
+                        }
+                        style={{
+                            borderRadius: 12,
+                            width: 50,
+                        }}
+                        mode="elevated"
+                        onPress={() => {
+                            setSelectedDate(
+                                new Date(
+                                    selectedDate.getTime() +
+                                        1 * 24 * 3600 * 1000
+                                )
+                            );
+                        }}
+                    >
+                        {">"}
+                    </Button>
                 </View>
+                <Card style={styles.expandedCard}>
+                    <Card.Content>
+                        <Entry
+                            entryData={loadedEntry!}
+                            onEntryChangeHandler={(editedEntry: EntryData) => {
+                                entryMutator.mutate(editedEntry, {
+                                    onSuccess: async (data) => {
+                                        if (data === 1) {
+                                            setReloadFlag(true);
+                                        }
+                                    },
+                                    onError: (error) => {
+                                        console.error(error);
+                                    },
+                                });
+                            }}
+                        />
+                    </Card.Content>
+                </Card>
             </View>
-        </PaperProvider>
+        </View>
     );
 }
 

@@ -2,17 +2,13 @@ import { Stack } from "expo-router";
 import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
 import { useColorScheme } from "react-native";
 import { useState } from "react";
-import { DarkTheme, LightTheme } from "@/constants/Colors";
+import { getAdaptaiveTheme } from "@/constants/Colors";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
-    const currentTheme = useColorScheme() ?? "light";
-    const [activeTheme, setActiveTheme] = useState(
-        currentTheme === "light" ? LightTheme : DarkTheme
-    );
     return (
         <SafeAreaProvider>
-            <PaperProvider theme={activeTheme}>
+            <PaperProvider theme={getAdaptaiveTheme()}>
                 <Stack>
                     <Stack.Screen
                         name="(tabs)"
