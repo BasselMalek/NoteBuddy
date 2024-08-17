@@ -147,7 +147,12 @@ export default function Account() {
                         <View
                             style={{
                                 borderRadius: 10,
-                                backgroundColor: "rgba(10,10,10,0.3)",
+                                backgroundColor: activeTheme.dark
+                                    ? "rgba(10,10,10,0.3)"
+                                    : `rgba(${activeTheme.colors.tertiary.slice(
+                                          5,
+                                          -1
+                                      )},0.1)`,
                                 flexDirection: "column",
                                 justifyContent: "center",
                                 alignItems: "center",
@@ -237,7 +242,19 @@ export default function Account() {
                             ]}
                         /> */}
                     <View>
-                        <View style={styles.chartHighlight}>
+                        <View
+                            style={[
+                                styles.chartHighlight,
+                                {
+                                    backgroundColor: activeTheme.dark
+                                        ? "rgba(10,10,10,0.3)"
+                                        : `rgba(${activeTheme.colors.tertiary.slice(
+                                              5,
+                                              -1
+                                          )},0.1)`,
+                                },
+                            ]}
+                        >
                             <PaperText style={styles.chartHighlightText}>
                                 {dataDur.length! < 3
                                     ? "Log more entires to acccess stats"
@@ -274,7 +291,19 @@ export default function Account() {
                         {"Difficulty"}
                     </PaperText>
                     <View>
-                        <View style={styles.chartHighlight}>
+                        <View
+                            style={[
+                                styles.chartHighlight,
+                                {
+                                    backgroundColor: activeTheme.dark
+                                        ? "rgba(10,10,10,0.3)"
+                                        : `rgba(${activeTheme.colors.tertiary.slice(
+                                              5,
+                                              -1
+                                          )},0.1)`,
+                                },
+                            ]}
+                        >
                             <PaperText style={styles.chartHighlightText}>
                                 {dataDur.length! < 3
                                     ? "Log more entires to acccess stats"
