@@ -2,10 +2,8 @@ import { View } from "react-native";
 import { Chip, PaperProvider, Text } from "react-native-paper";
 import { useState } from "react";
 import { Platform } from "react-native";
-import RNDateTimePicker, {
-    DateTimePickerAndroid,
-    DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import { TimePickerModal } from "react-native-paper-dates";
+
 //TODO(3): add input validation {from<to}.
 export default function DurationPicker(props: {
     fromValue: Date;
@@ -13,89 +11,56 @@ export default function DurationPicker(props: {
     toValue: Date;
     toHandler: Function;
 }) {
-    const [showFrom, setShowFrom] = useState(false);
-    const [showTo, setShowTo] = useState(false);
-    const onFromChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        const currentDate = selectedDate;
-        props.fromHandler(currentDate);
-    };
-    const onToChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-        const currentDate = selectedDate;
-        props.toHandler(currentDate);
-    };
-    if (Platform.OS === "android") {
-        return (
-            <View style={{ flexDirection: "row", gap: 15, marginBottom: 10 }}>
-                <Chip
-                    onPress={() => {
-                        DateTimePickerAndroid.open({
-                            value: props.fromValue,
-                            mode: "time",
-                            onChange: onFromChange,
-                        });
-                    }}
-                >
-                    {props.fromValue.toLocaleTimeString([], {
-                        timeStyle: "short",
-                    })}
-                </Chip>
-                <Text style={{ textAlignVertical: "center", fontSize: 24 }}>
-                    {"->"}
-                </Text>
-                <Chip
-                    onPress={() => {
-                        DateTimePickerAndroid.open({
-                            value: props.toValue,
-                            mode: "time",
-                            onChange: onToChange,
-                        });
-                    }}
-                >
-                    {props.toValue.toLocaleTimeString([], {
-                        timeStyle: "short",
-                    })}
-                </Chip>
-            </View>
-        );
-    } else {
-        return (
-            <View style={{ flexDirection: "row", gap: 15 }}>
-                <Chip
-                    onPress={() => {
-                        setShowFrom(true);
-                    }}
-                >
-                    {props.fromValue.toLocaleTimeString([], {
-                        timeStyle: "short",
-                    })}
-                </Chip>
-                {showFrom && (
-                    <RNDateTimePicker
-                        mode="time"
-                        onChange={onFromChange}
-                        value={props.fromValue}
-                    ></RNDateTimePicker>
-                )}
-                <Text style={{ textAlignVertical: "center", fontSize: 24 }}>
-                    {"->"}
-                </Text>
-                <Chip
-                    onPress={() => {
-                        setShowTo(true);
-                    }}
-                >
-                    {props.toValue.toLocaleTimeString([], {
-                        timeStyle: "short",
-                    })}
-                </Chip>
-                {showTo && (
-                    <RNDateTimePicker
-                        mode="time"
-                        onChange={onToChange}
-                        value={props.toValue}
-                    ></RNDateTimePicker>
-                )}
-            </View>
-        );
-    }
+    const [fromModalVisible, setFromModalVisible] = useState(false);
+    const [toModalVisible, setToModalVisible] = useState(false);
+
+    return (
+        <View style={{ flexDirection: "row", gap: 15, marginBottom: 10 }}>
+            <Chip
+                onPress={() => {
+                    setFromModalVisible(true);
+                }}
+            >
+                {props.fromValue.toLocaleTimeString([], {
+                    timeStyle: "short",
+                })}
+            </Chip>
+            <TimePickerModal
+                visible={fromModalVisible}
+                onConfirm={({ hours, minutes }) => {
+                    const date = new Date();
+                    date.setHours(hours, minutes);
+                    props.fromHandler(date);
+                    setFromModalVisible(false);
+                }}
+                onDismiss={() => {
+                    setFromModalVisible(false);
+                }}
+            />
+            <Text style={{ textAlignVertical: "center", fontSize: 24 }}>
+                {"->"}
+            </Text>
+            <Chip
+                onPress={() => {
+                    setToModalVisible(true);
+                }}
+            >
+                {props.toValue.toLocaleTimeString([], {
+                    timeStyle: "short",
+                })}
+            </Chip>
+            <TimePickerModal
+                visible={toModalVisible}
+                onConfirm={({ hours, minutes }) => {
+                    const date = new Date();
+                    date.setHours(hours, minutes);
+                    props.toHandler(date);
+                    setToModalVisible(false);
+                }}
+                onDismiss={() => {
+                    setToModalVisible(false);
+                }}
+            />
+        </View>
+    );
 }

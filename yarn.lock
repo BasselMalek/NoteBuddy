@@ -7919,6 +7919,13 @@ react-native-live-audio-stream@^1.1.1:
   resolved "https://registry.yarnpkg.com/react-native-live-audio-stream/-/react-native-live-audio-stream-1.1.1.tgz#937efd07029ff4a8c713833dea74713faf7226b0"
   integrity sha512-Yk0O51hY7eFMUv1umYxGDs4SJVPHyhUX6uz4jI+GiowOwSqIzLLRNh03hJjCVZRFXTWLPCntqOKZ+N8fVAc6BQ==
 
+react-native-paper-dates@^0.22.21:
+  version "0.22.21"
+  resolved "https://registry.yarnpkg.com/react-native-paper-dates/-/react-native-paper-dates-0.22.21.tgz#c0f57ee99f2745b7441599de331b412b0f59f7b3"
+  integrity sha512-35kosIP2KEPP9XsDFff+N6y5KRUUnAjPMU/BTovPGUI+xdy6DC96ZigYslE7qz+CLiql5FqeApuQeaOeucXyNw==
+  dependencies:
+    color "^4.2.3"
+
 react-native-paper@^5.12.3:
   version "5.12.3"
   resolved "https://registry.yarnpkg.com/react-native-paper/-/react-native-paper-5.12.3.tgz#d583119722ebbfbb7fe40400181d63748cca3683"

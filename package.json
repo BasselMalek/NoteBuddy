@@ -53,6 +53,7 @@
     "react-native-gifted-charts": "^1.4.29",
     "react-native-live-audio-stream": "^1.1.1",
     "react-native-paper": "^5.12.3",
+    "react-native-paper-dates": "^0.22.21",
     "react-native-permissions": "^3.10.1",
     "react-native-pitch-detector": "^0.1.6",
     "react-native-quick-base64": "^2.1.2",

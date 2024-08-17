@@ -86,54 +86,6 @@ export default function Account() {
         }, [LiveCRUD])
     );
 
-    // useEffect(() => {
-    //     (async () => {
-    //         let durSet = [];
-    //         if (durationGraphScale === "7D" || durationGraphScale === "30D") {
-    //             const aggDur = await LiveCRUD!.aggregateDur(
-    //                 durationGraphScale === "7D" ? sevenBack : thirtyBack,
-    //                 currentDay
-    //             );
-    //             for (const dur of aggDur) {
-    //                 durSet.push({
-    //                     dataPointText: `${dur.date}\n${
-    //                         Number.isNaN(dur.duration)
-    //                             ? "0hrs 0m"
-    //                             : unixIntToString(dur.duration)
-    //                     }`,
-    //                     value: Math.floor(dur.duration / 1000 / 60),
-    //                 });
-    //             }
-    //             setDataDur(durSet);
-    //         }
-    //     })();
-    // }, [LiveCRUD, durationGraphScale]);
-
-    // useEffect(() => {
-    //     if (LiveCRUD != null) {
-    //         (async () => {
-    //             let diffSet = [];
-    //             if (
-    //                 difficultyGraphScale === "7D" ||
-    //                 difficultyGraphScale === "30D"
-    //             ) {
-    //                 const aggDif = await LiveCRUD!.aggregateDiff(
-    //                     difficultyGraphScale === "7D" ? sevenBack : thirtyBack,
-    //                     currentDay
-    //                 );
-    //                 for (const diff of aggDif) {
-    //                     diffSet.push({
-    //                         dataPointText: `${diff.date}\n★${diff.rating}`,
-    //                         value: diff.rating,
-    //                     });
-    //                 }
-    //                 setDataDiff(diffSet);
-    //             }
-    //         })();
-    //     }
-    // }, [LiveCRUD, difficultyGraphScale]);
-    console.log(dataDiff);
-
     return (
         <PaperProvider theme={getAdaptaiveTheme()}>
             <View
@@ -326,39 +278,6 @@ export default function Account() {
                         >
                             {"Difficulty"}
                         </PaperText>
-                        {/* <SegmentedButtons
-                            value={difficultyGraphScale}
-                            onValueChange={(value) => {
-                                setdifficultyGraphScale(value);
-                            }}
-                            theme={{
-                                colors: {
-                                    secondaryContainer:
-                                        "rgba(106, 219, 167, 0.3)",
-                                },
-                            }}
-                            style={{
-                                marginBottom: 15,
-                            }}
-                            density="high"
-                            buttons={[
-                                {
-                                    value: "7D",
-                                    label: "7D",
-                                    labelStyle: { fontWeight: "bold" },
-                                },
-                                {
-                                    value: "30D",
-                                    label: "30D",
-                                    labelStyle: { fontWeight: "bold" },
-                                },
-                                {
-                                    value: "360D",
-                                    label: "360D",
-                                    labelStyle: { fontWeight: "bold" },
-                                },
-                            ]}
-                        /> */}
                         <View>
                             <View style={styles.chartHighlight}>
                                 <PaperText style={styles.chartHighlightText}>
