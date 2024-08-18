@@ -54,7 +54,6 @@ const LightTheme = {
     ...MD3LightTheme,
     colors: {
         ...MD3LightTheme.colors,
-
         primary: "rgb(73, 87, 171)",
         onPrimary: "rgb(255, 255, 255)",
         primaryContainer: "rgb(222, 224, 255)",

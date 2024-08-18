@@ -20,6 +20,7 @@ export default function Practice() {
     const LiveCRUD = useCRUDService();
     const [selectedDate, setSelectedDate] = useState(currentDay);
     const [reloadFlag, setReloadFlag] = useState(false);
+    const [active, setActive] = useState(false);
     const [loadedEntry, setLoadedEntry] = useState<EntryData>({
         date: currentDay,
         title: "",
@@ -79,6 +80,7 @@ export default function Practice() {
                     }}
                 >
                     <Button
+                        disabled={active}
                         compact
                         style={{
                             borderRadius: 12,
@@ -123,7 +125,7 @@ export default function Practice() {
                         compact
                         disabled={
                             selectedDate.toDateString() ===
-                            currentDay.toDateString()
+                                currentDay.toDateString() || active
                         }
                         style={{
                             borderRadius: 12,
@@ -145,6 +147,9 @@ export default function Practice() {
                 <Card style={styles.expandedCard}>
                     <Card.Content>
                         <Entry
+                            setEditing={(isEditing: boolean) => {
+                                setActive(isEditing);
+                            }}
                             entryData={loadedEntry!}
                             onEntryChangeHandler={(editedEntry: EntryData) => {
                                 entryMutator.mutate(editedEntry, {

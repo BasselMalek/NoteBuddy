@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Chip, PaperProvider, Text } from "react-native-paper";
+import { Chip, PaperProvider, Text, useTheme } from "react-native-paper";
 import { useState } from "react";
 import { Platform } from "react-native";
 import { TimePickerModal } from "react-native-paper-dates";
@@ -10,15 +10,30 @@ export default function DurationPicker(props: {
     fromHandler: Function;
     toValue: Date;
     toHandler: Function;
+    error?: boolean;
 }) {
     const [fromModalVisible, setFromModalVisible] = useState(false);
     const [toModalVisible, setToModalVisible] = useState(false);
+    const activeTheme = useTheme();
 
     return (
-        <View style={{ flexDirection: "row", gap: 15, marginBottom: 10 }}>
+        <View
+            style={{
+                flexDirection: "row",
+                gap: 15,
+                marginBottom: 10,
+            }}
+        >
             <Chip
+                mode="outlined"
                 onPress={() => {
                     setFromModalVisible(true);
+                }}
+                style={{
+                    borderColor:
+                        props.error ?? false
+                            ? activeTheme.colors.error
+                            : activeTheme.colors.outline,
                 }}
             >
                 {props.fromValue.toLocaleTimeString([], {
@@ -41,6 +56,13 @@ export default function DurationPicker(props: {
                 {"->"}
             </Text>
             <Chip
+                mode="outlined"
+                style={{
+                    borderColor:
+                        props.error ?? false
+                            ? activeTheme.colors.error
+                            : activeTheme.colors.outline,
+                }}
                 onPress={() => {
                     setToModalVisible(true);
                 }}

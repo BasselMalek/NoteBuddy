@@ -1,4 +1,4 @@
-import { useState, useEffect, useReducer } from "react";
+import { useState, useEffect, useReducer, Reducer } from "react";
 import { View, StyleProp, StyleSheet, ScrollView } from "react-native";
 import {
     Text as PaperText,
@@ -6,6 +6,8 @@ import {
     TextInput,
     Button as PaperButton,
     useTheme,
+    Portal,
+    Snackbar,
 } from "react-native-paper";
 import DurationPicker from "@/components/DurationPicker";
 import RatingSelector from "@/components/RatingSelector";
@@ -22,7 +24,10 @@ interface EntryData {
     submitAction?: "add" | "update";
 }
 
-const entryReducer = (state: any, action: { type: any; payload: any }) => {
+const entryReducer = (
+    state: EntryData,
+    action: { type: string; payload: any }
+) => {
     switch (action.type) {
         case "UPDATE":
             return { ...action.payload };
@@ -45,6 +50,36 @@ const entryReducer = (state: any, action: { type: any; payload: any }) => {
     }
 };
 
+const errorReducer = (
+    state: {
+        title: boolean;
+        duration: boolean;
+        rating: boolean;
+        submit: boolean;
+    },
+    action: { type: string; payload: any }
+) => {
+    switch (action.type) {
+        case "ERR_ALL":
+            return {
+                title: action.payload,
+                duration: action.payload,
+                rating: action.payload,
+                submit: action.payload,
+            };
+        case "ERR_TITLE":
+            return { ...state, title: action.payload };
+        case "ERR_DURATION":
+            return { ...state, duration: action.payload };
+        case "ERR_RATING":
+            return { ...state, rating: action.payload };
+        case "ERR_SUBMIT":
+            return { ...state, submit: action.payload };
+        default:
+            return state;
+    }
+};
+
 const unixIntToString = (unixMS: number) => {
     const m = Math.round(unixMS / 1000 / 60);
     const hr = Math.floor(m / 60);
@@ -52,43 +87,80 @@ const unixIntToString = (unixMS: number) => {
 };
 
 function Entry(props: {
+    setEditing: Function;
     style?: StyleProp<View>;
     entryData: EntryData;
     onEntryChangeHandler: Function;
 }) {
     const activeTheme = useTheme();
     const [editingActive, setEditingActive] = useState(false);
+    const [entryErrors, dispatchError] = useReducer(errorReducer, {
+        title: false,
+        duration: false,
+        rating: false,
+        submit: false,
+    });
     const [entryState, entryDispatch] = useReducer(entryReducer, {}, (arg) => ({
         ...props.entryData,
     }));
-    const [editState, editDispatch] = useReducer(entryReducer, {}, (arg) => ({
+    const [editState, editDispatch] = useReducer(entryReducer, {
         ...props.entryData,
-    }));
+        durationFrom: new Date(),
+        durationTo: new Date(Date.now() + 900000),
+    });
 
     useEffect(() => {
-        entryDispatch({ type: "UPDATE", payload: props.entryData });
-        editDispatch({ type: "UPDATE", payload: props.entryData });
+        entryDispatch({
+            type: "UPDATE",
+            payload: {
+                ...props.entryData,
+                durationFrom: new Date(),
+                durationTo: new Date(Date.now() + 900000),
+            },
+        });
+        editDispatch({
+            type: "UPDATE",
+            payload: {
+                ...props.entryData,
+                durationFrom: new Date(),
+                durationTo: new Date(Date.now() + 900000),
+            },
+        });
         return () => {};
     }, [props]);
 
     useEffect(() => {
         const val =
-            editState.durationTo.valueOf() - editState.durationFrom.valueOf();
-        editDispatch({
-            type: "SET_DURATION_TIME",
-            payload: val < 0 ? 24 * 60 * 60 * 1000 + val : val,
-        });
-        return () => {};
+            editState.durationTo.getTime() - editState.durationFrom.getTime();
+        if (val <= 60000 || val > 86400000) {
+            dispatchError({ type: "ERR_DURATION", payload: true });
+        } else {
+            dispatchError({ type: "ERR_DURATION", payload: false });
+            editDispatch({
+                type: "SET_DURATION_TIME",
+                payload: val,
+            });
+        }
+        return () => {
+            dispatchError({ type: "ERR_DURATION", payload: false });
+        };
     }, [editState.durationFrom, editState.durationTo]);
-
     if (editingActive) {
         return (
             <ScrollView>
                 <TextInput
                     mode="outlined"
-                    value={editState.title}
+                    error={entryErrors.title}
                     onChangeText={(text) => {
-                        editDispatch({ type: "SET_TITLE", payload: text });
+                        if (text.length > 0) {
+                            editDispatch({ type: "SET_TITLE", payload: text });
+                            dispatchError({
+                                type: "ERR_TITLE",
+                                payload: false,
+                            });
+                        } else {
+                            dispatchError({ type: "ERR_TITLE", payload: true });
+                        }
                     }}
                     label={"Title"}
                 ></TextInput>
@@ -97,30 +169,24 @@ function Entry(props: {
                         editState.rating === undefined ? 0 : editState.rating
                     }
                     ratingHandler={(entryRating: number) => {
+                        dispatchError({ type: "ERR_RATING", payload: false });
                         editDispatch({
                             type: "SET_RATING",
                             payload: entryRating,
                         });
                     }}
-                    starColor={activeTheme.colors.secondary}
+                    error={entryErrors.rating}
                 ></RatingSelector>
                 <DurationPicker
-                    fromValue={
-                        editState.durationFrom === undefined
-                            ? new Date(editState.date)
-                            : editState.durationFrom
-                    }
+                    error={entryErrors.duration}
+                    fromValue={editState.durationFrom}
                     fromHandler={(start: any) => {
                         editDispatch({
                             type: "SET_DURATION_FROM",
                             payload: start,
                         });
                     }}
-                    toValue={
-                        editState.durationTo === undefined
-                            ? new Date(editState.date)
-                            : editState.durationTo
-                    }
+                    toValue={editState.durationTo}
                     toHandler={(end: any) => {
                         editDispatch({
                             type: "SET_DURATION_TO",
@@ -143,11 +209,30 @@ function Entry(props: {
                     contentStyle={{ height: 350 }}
                 ></TextInput>
                 <PaperButton
-                    // icon={"check"}
                     style={{ marginTop: 10 }}
                     onPress={() => {
-                        props.onEntryChangeHandler(editState);
-                        setEditingActive(false);
+                        if (
+                            editState.title.length > 0 &&
+                            editState.rating > 0 &&
+                            !entryErrors.duration
+                        ) {
+                            props.onEntryChangeHandler(editState);
+                            setEditingActive(false);
+                            props.setEditing(false);
+                        } else {
+                            dispatchError({
+                                type: "ERR_SUBMIT",
+                                payload: true,
+                            });
+                            dispatchError({
+                                type: "ERR_RATING",
+                                payload: editState.rating <= 0,
+                            });
+                            dispatchError({
+                                type: "ERR_TITLE",
+                                payload: editState.title.length <= 0,
+                            });
+                        }
                     }}
                 >
                     Submit
@@ -155,11 +240,37 @@ function Entry(props: {
                 <PaperButton
                     onPress={() => {
                         editDispatch({ type: "UPDATE", payload: entryState });
+                        dispatchError({ type: "ERR_ALL", payload: false });
                         setEditingActive(false);
+                        props.setEditing(false);
                     }}
                 >
                     Cancel
                 </PaperButton>
+                <Portal theme={activeTheme}>
+                    <Snackbar
+                        style={{ marginBottom: 10 }}
+                        duration={5000}
+                        action={{
+                            label: "Dismiss",
+                            onPress: () => {
+                                dispatchError({
+                                    type: "ERR_SUBMIT",
+                                    payload: false,
+                                });
+                            },
+                        }}
+                        onDismiss={() => {
+                            dispatchError({
+                                type: "ERR_SUBMIT",
+                                payload: false,
+                            });
+                        }}
+                        visible={entryErrors.submit}
+                    >
+                        {"Empty or invalid fields."}
+                    </Snackbar>
+                </Portal>
             </ScrollView>
         );
     } else {
@@ -220,6 +331,7 @@ function Entry(props: {
                         onPress={() => {
                             editDispatch({ type: "SET_SUBMIT", payload: true });
                             setEditingActive(true);
+                            props.setEditing(true);
                         }}
                     ></FAB>
                 </View>

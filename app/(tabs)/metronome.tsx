@@ -69,6 +69,7 @@ export default function Metronome() {
                             borderRadius: 12,
                             width: 50,
                         }}
+                        elevation={5}
                         mode="elevated"
                         onPress={() => {
                             setCurrentBpm(-1);
@@ -109,6 +110,7 @@ export default function Metronome() {
                     </View>
                     <PaperButton
                         compact
+                        elevation={5}
                         style={{
                             borderRadius: 12,
                             width: 50,

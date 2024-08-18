@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { TouchableRipple } from "react-native-paper";
+import { TouchableRipple, useTheme } from "react-native-paper";
 import { View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 export default function RatingSelector(props: {
     ratingState: number;
     ratingHandler: Function;
-    starColor: string;
+    error?: boolean;
 }) {
+    const activeTheme = useTheme();
     const [starStates, setStarStates] = useState<
         ("star" | "staro" | undefined)[]
     >([]);
@@ -17,12 +18,6 @@ export default function RatingSelector(props: {
             index + 1 <= props.ratingState ? "star" : "staro"
         );
         setStarStates(newStarStates);
-
-        return () => {
-            // // starRefs.map((val, index) => {
-            // //     val.current = "staro";
-            // // });
-        };
     }, [props.ratingState]);
 
     return (
@@ -30,7 +25,6 @@ export default function RatingSelector(props: {
             {starStates.map((val, index) => (
                 <TouchableRipple
                     key={index}
-                    // // onPress={props.ratingStateAction(index)}
                     onPress={() => {
                         props.ratingHandler(index + 1);
                     }}
@@ -38,7 +32,14 @@ export default function RatingSelector(props: {
                     <AntDesign
                         name={val}
                         size={32}
-                        style={{ color: props.starColor }}
+                        style={{
+                            color:
+                                props.error ?? false
+                                    ? activeTheme.colors.error
+                                    : props.ratingState === 0
+                                    ? activeTheme.colors.outline
+                                    : activeTheme.colors.onPrimaryContainer,
+                        }}
                     ></AntDesign>
                 </TouchableRipple>
             ))}
