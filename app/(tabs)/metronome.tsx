@@ -21,6 +21,7 @@ export default function Metronome() {
     const globalStart = () => {
         MetronomeModule.setBPM(currentBpm);
         setIsMetronomePlaying(true);
+        MetronomeModule.start();
     };
     const globalEnd = () => {
         MetronomeModule.stop();
