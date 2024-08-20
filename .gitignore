@@ -23,6 +23,7 @@ expo-env.d.ts
 #prebuilds
 android/
 ios/
+.plugins
 
 #vscode
 .vscode

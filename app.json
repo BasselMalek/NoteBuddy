@@ -30,7 +30,12 @@
             "output": "static",
             "favicon": "./assets/images/favicon.png"
         },
-        "plugins": ["expo-router", "expo-font", "expo-build-properties"],
+        "plugins": [
+            "expo-router",
+            "expo-font",
+            "expo-build-properties",
+            ["./plugins/withMetronome.js"]
+        ],
         "experiments": {
             "typedRoutes": true
         },
