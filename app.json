@@ -2,7 +2,7 @@
     "expo": {
         "name": "Note Buddy",
         "slug": "NoteBuddy",
-        "version": "1.0.1-beta",
+        "version": "1.0.2",
         "orientation": "portrait",
         "icon": "./assets/images/icon.png",
         "scheme": "myapp",

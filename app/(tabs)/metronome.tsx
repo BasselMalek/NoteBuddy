@@ -9,7 +9,7 @@ import {
 import { useState, useRef, useReducer } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ticker } from "@/components/NewTicker";
-import { Metronome as MetronomeModule } from "rn-metronome";
+import MetronomeModule from "react-native-metronome-module";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Metronome() {
@@ -17,10 +17,10 @@ export default function Metronome() {
     const activeTheme = useTheme();
     const activeLongPressInterval = useRef<NodeJS.Timeout>();
     const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
-
+    MetronomeModule.setShouldPauseOnLostFocus(true);
     const globalStart = () => {
+        MetronomeModule.setBPM(currentBpm);
         setIsMetronomePlaying(true);
-        MetronomeModule.play(currentBpm);
     };
     const globalEnd = () => {
         MetronomeModule.stop();
