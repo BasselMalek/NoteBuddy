@@ -12,6 +12,7 @@ import {
     useTheme,
 } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 export default function index() {
     const safeInsets = useSafeAreaInsets();
@@ -35,6 +36,7 @@ export default function index() {
                 setFill(liveInfo.fill);
                 setisRecording(await PitchDetector.isRecording());
             });
+            activateKeepAwakeAsync();
         }
     }
     async function stopTuner() {
@@ -43,6 +45,7 @@ export default function index() {
         PitchDetector.removeAllListeners();
         setFill(0);
         setPitch("\u{266A}\u{266A}");
+        deactivateKeepAwake();
     }
 
     return (
