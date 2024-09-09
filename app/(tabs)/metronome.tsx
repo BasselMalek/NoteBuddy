@@ -1,6 +1,5 @@
 import { View, StyleSheet } from "react-native";
 import {
-    PaperProvider,
     Text as PaperText,
     Button as PaperButton,
     FAB,
@@ -11,6 +10,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ticker } from "@/components/NewTicker";
 import MetronomeModule from "react-native-metronome-module";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
@@ -22,16 +22,24 @@ export default function Metronome() {
         MetronomeModule.setBPM(currentBpm);
         setIsMetronomePlaying(true);
         MetronomeModule.start();
+        activateKeepAwakeAsync();
     };
     const globalEnd = () => {
         MetronomeModule.stop();
         setIsMetronomePlaying(false);
+        deactivateKeepAwake();
     };
 
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
             globalEnd();
-            state += action;
+            if (state + action > 0 && state + action < 241) {
+                state += action;
+            } else if (state + action <= 0) {
+                state = 0;
+            } else {
+                state = 240;
+            }
             return state;
         },
         120

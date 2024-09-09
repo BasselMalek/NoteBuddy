@@ -5,12 +5,7 @@ import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import calcMidi from "@/constants/MidiNotes";
-import {
-    PaperProvider,
-    FAB,
-    Text as PaperText,
-    useTheme,
-} from "react-native-paper";
+import { FAB, Text as PaperText, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
@@ -45,6 +40,7 @@ export default function index() {
         PitchDetector.removeAllListeners();
         setFill(0);
         setPitch("\u{266A}\u{266A}");
+        activateKeepAwakeAsync();
         deactivateKeepAwake();
     }
 
