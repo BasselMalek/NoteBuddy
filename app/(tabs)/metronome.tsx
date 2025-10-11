@@ -8,31 +8,17 @@ import {
 import { useState, useRef, useReducer } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ticker } from "@/components/NewTicker";
-import MetronomeModule from "react-native-metronome-module";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
     const activeTheme = useTheme();
-    const activeLongPressInterval = useRef<NodeJS.Timeout>();
+    const activeLongPressInterval = useRef<any>(null);
     const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
-    MetronomeModule.setShouldPauseOnLostFocus(true);
-    const globalStart = () => {
-        MetronomeModule.setBPM(currentBpm);
-        setIsMetronomePlaying(true);
-        MetronomeModule.start();
-        activateKeepAwakeAsync();
-    };
-    const globalEnd = () => {
-        MetronomeModule.stop();
-        setIsMetronomePlaying(false);
-        deactivateKeepAwake();
-    };
 
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
-            globalEnd();
             if (state + action > 0 && state + action < 241) {
                 state += action;
             } else if (state + action <= 0) {
@@ -44,6 +30,16 @@ export default function Metronome() {
         },
         120
     );
+
+    const toggleMetronome = () => {
+        if (isMetronomePlaying) {
+            setIsMetronomePlaying(false);
+            deactivateKeepAwake();
+        } else {
+            setIsMetronomePlaying(true);
+            activateKeepAwakeAsync();
+        }
+    };
 
     return (
         <View
@@ -61,7 +57,7 @@ export default function Metronome() {
                     metronomeStatus={isMetronomePlaying}
                     sourceColor={activeTheme.colors.surfaceVariant}
                     targetColor={activeTheme.colors.tertiary}
-                ></Ticker>
+                />
                 <View
                     style={{
                         margin: 20,
@@ -81,7 +77,7 @@ export default function Metronome() {
                         elevation={5}
                         mode="elevated"
                         onPress={() => {
-                            setCurrentBpm(-1);
+                            setCurrentBpm(-10);
                         }}
                         onLongPress={() => {
                             activeLongPressInterval.current = setInterval(
@@ -95,7 +91,32 @@ export default function Metronome() {
                             clearInterval(activeLongPressInterval.current);
                         }}
                     >
-                        <MaterialCommunityIcons name="minus"></MaterialCommunityIcons>
+                        <MaterialCommunityIcons name="minus-thick" />
+                    </PaperButton>
+                    <PaperButton
+                        compact
+                        style={{
+                            borderRadius: 12,
+                            width: 50,
+                        }}
+                        elevation={5}
+                        mode="elevated"
+                        onPress={() => {
+                            setCurrentBpm(-1);
+                        }}
+                        onLongPress={() => {
+                            activeLongPressInterval.current = setInterval(
+                                () => {
+                                    setCurrentBpm(-1);
+                                },
+                                75
+                            );
+                        }}
+                        onPressOut={() => {
+                            clearInterval(activeLongPressInterval.current);
+                        }}
+                    >
+                        <MaterialCommunityIcons name="minus" />
                     </PaperButton>
                     <View
                         style={{
@@ -131,6 +152,31 @@ export default function Metronome() {
                         onLongPress={() => {
                             activeLongPressInterval.current = setInterval(
                                 () => {
+                                    setCurrentBpm(1);
+                                },
+                                75
+                            );
+                        }}
+                        onPressOut={() => {
+                            clearInterval(activeLongPressInterval.current);
+                        }}
+                    >
+                        <MaterialCommunityIcons name="plus" />
+                    </PaperButton>
+                    <PaperButton
+                        compact
+                        elevation={5}
+                        style={{
+                            borderRadius: 12,
+                            width: 50,
+                        }}
+                        mode="elevated"
+                        onPress={() => {
+                            setCurrentBpm(10);
+                        }}
+                        onLongPress={() => {
+                            activeLongPressInterval.current = setInterval(
+                                () => {
                                     setCurrentBpm(10);
                                 },
                                 75
@@ -140,7 +186,7 @@ export default function Metronome() {
                             clearInterval(activeLongPressInterval.current);
                         }}
                     >
-                        <MaterialCommunityIcons name="plus"></MaterialCommunityIcons>
+                        <MaterialCommunityIcons name="plus-thick" />
                     </PaperButton>
                 </View>
                 <FAB
@@ -151,13 +197,7 @@ export default function Metronome() {
                         alignSelf: "center",
                         marginBottom: 15,
                     }}
-                    onPress={async () => {
-                        if (isMetronomePlaying) {
-                            globalEnd();
-                        } else {
-                            globalStart();
-                        }
-                    }}
+                    onPress={toggleMetronome}
                 />
             </View>
         </View>
