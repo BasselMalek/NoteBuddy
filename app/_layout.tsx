@@ -13,9 +13,6 @@ export default function RootLayout() {
                     <Stack.Screen
                         name="(tabs)"
                         options={{
-                            contentStyle: {
-                                backgroundColor: "#000",
-                            },
                             headerShown: false,
                         }}
                     />

@@ -5,17 +5,22 @@ import {
     FAB,
     useTheme,
 } from "react-native-paper";
-import { useState, useRef, useReducer } from "react";
+import { useState, useRef, useReducer, useEffect } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Ticker } from "@/components/NewTicker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import { AudioContext } from "react-native-audio-api";
+import { useFileSound } from "@/hooks/useFileSound";
+import useMetronomePlayer from "@/hooks/usePlayer";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
     const activeTheme = useTheme();
     const activeLongPressInterval = useRef<any>(null);
-    const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
+    const audioContextRef = useRef<AudioContext | null>(new AudioContext());
+    const downBeatSoundRef = useRef<any>(null);
+    const upBeatSoundRef = useRef<any>(null);
 
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
@@ -31,12 +36,55 @@ export default function Metronome() {
         120
     );
 
+    downBeatSoundRef.current = useFileSound(
+        audioContextRef.current!,
+        require("@/assets/sounds/Perc_MetronomeQuartz_hi.wav"),
+        0.8
+    );
+
+    upBeatSoundRef.current = useFileSound(
+        audioContextRef.current!,
+        require("@/assets/sounds/Perc_MetronomeQuartz_lo.wav"),
+        0.6
+    );
+    useEffect(() => {
+        if (audioContextRef.current) {
+            downBeatSoundRef.current.load();
+            upBeatSoundRef.current.load();
+        }
+
+        return () => {
+            audioContextRef.current?.close();
+        };
+    }, []);
+
+    useEffect(() => {
+        downBeatSoundRef.current.load();
+        upBeatSoundRef.current.load();
+    }, []);
+
+    const { isPlaying, play, stop } = useMetronomePlayer({
+        bpm: currentBpm,
+        numBeats: 4,
+        setup: (audioContext) => {
+            return {
+                playNote: (beatType, time) => {
+                    if (beatType === "downbeat") {
+                        downBeatSoundRef.current.play(time);
+                    } else {
+                        upBeatSoundRef.current.play(time);
+                    }
+                },
+            };
+        },
+    });
+
     const toggleMetronome = () => {
-        if (isMetronomePlaying) {
-            setIsMetronomePlaying(false);
+        if (isPlaying) {
+            stop();
             deactivateKeepAwake();
         } else {
-            setIsMetronomePlaying(true);
+            play();
             activateKeepAwakeAsync();
         }
     };
@@ -54,7 +102,7 @@ export default function Metronome() {
             <View style={style.rootContainer}>
                 <Ticker
                     bpm={currentBpm}
-                    metronomeStatus={isMetronomePlaying}
+                    metronomeStatus={isPlaying}
                     sourceColor={activeTheme.colors.surfaceVariant}
                     targetColor={activeTheme.colors.tertiary}
                 />
@@ -190,7 +238,7 @@ export default function Metronome() {
                     </PaperButton>
                 </View>
                 <FAB
-                    icon={isMetronomePlaying ? "pause" : "play"}
+                    icon={isPlaying ? "pause" : "play"}
                     mode="elevated"
                     style={{
                         marginRight: 0,
