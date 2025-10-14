@@ -7,20 +7,16 @@ import {
 } from "react-native-paper";
 import { useState, useRef, useReducer, useEffect } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Ticker } from "@/components/NewTicker";
+import { Pendulum } from "@/components/Pendulum";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
-import { AudioContext } from "react-native-audio-api";
-import { useFileSound } from "@/hooks/useFileSound";
-import useMetronomePlayer from "@/hooks/usePlayer";
+import useMetronomePlayer from "@/hooks/useMetronomePlayer";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
     const activeTheme = useTheme();
     const activeLongPressInterval = useRef<any>(null);
-    const audioContextRef = useRef<AudioContext | null>(new AudioContext());
-    const downBeatSoundRef = useRef<any>(null);
-    const upBeatSoundRef = useRef<any>(null);
+    const [isPlayingOverall, setIsPlayingOverall] = useState(false);
 
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
@@ -36,55 +32,27 @@ export default function Metronome() {
         120
     );
 
-    downBeatSoundRef.current = useFileSound(
-        audioContextRef.current!,
-        require("@/assets/sounds/Perc_MetronomeQuartz_hi.wav"),
-        0.8
-    );
-
-    upBeatSoundRef.current = useFileSound(
-        audioContextRef.current!,
-        require("@/assets/sounds/Perc_MetronomeQuartz_lo.wav"),
-        0.6
-    );
-    useEffect(() => {
-        if (audioContextRef.current) {
-            downBeatSoundRef.current.load();
-            upBeatSoundRef.current.load();
-        }
-
-        return () => {
-            audioContextRef.current?.close();
-        };
-    }, []);
-
-    useEffect(() => {
-        downBeatSoundRef.current.load();
-        upBeatSoundRef.current.load();
-    }, []);
-
-    const { isPlaying, play, stop } = useMetronomePlayer({
+    const { isPlaying, play, stop, load } = useMetronomePlayer({
         bpm: currentBpm,
         numBeats: 4,
-        setup: (audioContext) => {
-            return {
-                playNote: (beatType, time) => {
-                    if (beatType === "downbeat") {
-                        downBeatSoundRef.current.play(time);
-                    } else {
-                        upBeatSoundRef.current.play(time);
-                    }
-                },
-            };
-        },
     });
+
+    useEffect(() => {
+        if (load) {
+            load();
+        }
+
+        return () => {};
+    }, [load]);
 
     const toggleMetronome = () => {
         if (isPlaying) {
             stop();
+            setIsPlayingOverall(false);
             deactivateKeepAwake();
         } else {
             play();
+            setIsPlayingOverall(true);
             activateKeepAwakeAsync();
         }
     };
@@ -100,9 +68,9 @@ export default function Metronome() {
             }}
         >
             <View style={style.rootContainer}>
-                <Ticker
+                <Pendulum
                     bpm={currentBpm}
-                    metronomeStatus={isPlaying}
+                    metronomeStatus={isPlayingOverall}
                     sourceColor={activeTheme.colors.surfaceVariant}
                     targetColor={activeTheme.colors.tertiary}
                 />

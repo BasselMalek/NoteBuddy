@@ -8,13 +8,16 @@ import Animated, {
     withRepeat,
     withSequence,
     withSpring,
+    withTiming,
+    Easing,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 interface TimeSignature {
     beats: number;
     beatValue: number;
 }
 
-function Ticker(props: {
+function Pendulum(props: {
     // beats: number;
     metronomeStatus: boolean;
     sourceColor: string;
@@ -23,12 +26,11 @@ function Ticker(props: {
 }) {
     const translateX = useSharedValue<number>(0);
     const tickerSpringConfig = {
-        duration: 60000 / props.bpm,
-        dampingRatio: 0.5,
-        stiffness: 500,
-        restDisplacementThreshold: 100,
-        overshootClamping: true,
+        duration: 60000 / props.bpm - (60000 / props.bpm) * 0.2,
+        dampingRatio: 0.6,
+        overshootClamping: false,
     };
+
     const tickerAnimatedStyle = useAnimatedStyle(() => ({
         transform: [
             {
@@ -49,10 +51,10 @@ function Ticker(props: {
                                       tickerSpringConfig
                                   )
                               ),
-                              0
+                              -1
                           )
                       )
-                    : withSpring(0),
+                    : withSpring(0, tickerSpringConfig),
             },
         ],
     }));
@@ -88,4 +90,4 @@ function Ticker(props: {
     );
 }
 
-export { Ticker, TimeSignature };
+export { Pendulum, TimeSignature };
