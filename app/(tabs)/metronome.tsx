@@ -57,14 +57,6 @@ export default function Metronome() {
         }
     }, [load]);
 
-    useAnimatedReaction(
-        () => currentBeat?.value,
-        (prev, now) => {
-            console.log(now! * (220 / 5) - 110);
-        },
-        []
-    );
-
     const toggleMetronome = () => {
         if (isPlaying) {
             stop();

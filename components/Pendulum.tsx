@@ -1,13 +1,9 @@
-import { View, StyleSheet } from "react-native";
-import { useEffect, useLayoutEffect } from "react";
+import { View } from "react-native";
 import Animated, {
     SharedValue,
-    SnappySpringConfig,
     useAnimatedReaction,
     useAnimatedStyle,
     useSharedValue,
-    withRepeat,
-    withSequence,
     withSpring,
 } from "react-native-reanimated";
 interface TimeSignature {
@@ -17,7 +13,7 @@ interface TimeSignature {
 
 function Pendulum(props: {
     metronomeStatus: boolean;
-    progress?: SharedValue<number>;
+    progress: SharedValue<number>;
     sourceColor: string;
     targetColor: string;
     bpm: number;
@@ -25,64 +21,34 @@ function Pendulum(props: {
 }) {
     const translateX = useSharedValue<number>(0);
     const tickerSpringConfig = {
-        duration: 60000 / props.bpm - (60000 / props.bpm) * 0.2,
-        dampingRatio: 0.7,
+        stiffness: 1825,
+        damping: 120,
+        mass: 6,
         overshootClamping: false,
     };
 
-    const tickerAnimatedStyle = useAnimatedStyle(() =>
-        props.progress
-            ? {
-                  transform: [
-                      {
-                          translateX: props.metronomeStatus
-                              ? withSpring(
-                                    translateX.value +
-                                        (props.progress.value *
-                                            (220 / (props.signature - 1)) -
-                                            110),
-                                    {
-                                        stiffness: 1825,
-                                        damping: 120,
-                                        mass: 6,
-                                        overshootClamping: false,
-                                    }
-                                )
-                              : withSpring(0),
-                      },
-                  ],
-              }
-            : {
-                  transform: [
-                      {
-                          translateX: props.metronomeStatus
-                              ? withSequence(
-                                    withSpring(translateX.value + 110, {
-                                        ...tickerSpringConfig,
-                                        duration:
-                                            (60000 / props.bpm -
-                                                (60000 / props.bpm) * 0.3) *
-                                            0.5,
-                                    }),
-                                    withRepeat(
-                                        withSequence(
-                                            withSpring(
-                                                translateX.value - 110,
-                                                tickerSpringConfig
-                                            ),
-                                            withSpring(
-                                                translateX.value + 110,
-                                                tickerSpringConfig
-                                            )
-                                        ),
-                                        -1
-                                    )
-                                )
-                              : withSpring(0, tickerSpringConfig),
-                      },
-                  ],
-              }
+    useAnimatedReaction(
+        () => translateX.value,
+        (prev, now) => {
+            console.log(now);
+        },
+        []
     );
+    const tickerAnimatedStyle = useAnimatedStyle(() => {
+        const toVal =
+            translateX.value +
+            props.progress.value * (220 / (props.signature - 1)) -
+            110;
+        return {
+            transform: [
+                {
+                    translateX: props.metronomeStatus
+                        ? withSpring(toVal, tickerSpringConfig)
+                        : withSpring(0),
+                },
+            ],
+        };
+    });
 
     return (
         <View
