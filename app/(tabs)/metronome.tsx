@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import useMetronomePlayer from "@/hooks/useMetronomePlayer";
 import { useFocusEffect } from "expo-router";
-import { useAnimatedReaction } from "react-native-reanimated";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
@@ -43,12 +42,26 @@ export default function Metronome() {
             }
             return state;
         },
-        120
+        90
+    );
+
+    const [beatsPerBar, setBeatsPerBar] = useReducer(
+        (state: number, action: number) => {
+            const newValue = state + action;
+            if (newValue >= 2 && newValue <= 9) {
+                return newValue;
+            } else if (newValue < 2) {
+                return 2;
+            } else {
+                return 9;
+            }
+        },
+        2
     );
 
     const { isPlaying, play, stop, load, currentBeat } = useMetronomePlayer({
         bpm: currentBpm,
-        numBeats: 6,
+        numBeats: beatsPerBar,
     });
 
     useEffect(() => {
@@ -83,150 +96,180 @@ export default function Metronome() {
                 <Pendulum
                     bpm={currentBpm}
                     progress={currentBeat}
-                    signature={6}
+                    signature={beatsPerBar}
                     metronomeStatus={isPlayingOverall}
                     sourceColor={activeTheme.colors.surfaceVariant}
                     targetColor={activeTheme.colors.tertiary}
                 />
-                <View
-                    style={{
-                        margin: 20,
-                        flexDirection: "row",
-                        alignSelf: "center",
-                        justifyContent: "center",
-                        paddingHorizontal: 20,
-                        gap: 10,
-                    }}
-                >
-                    <PaperButton
-                        compact
-                        style={{
-                            borderRadius: 12,
-                            width: 50,
-                        }}
-                        elevation={5}
-                        mode="elevated"
-                        onPress={() => {
-                            setCurrentBpm(-10);
-                        }}
-                        onLongPress={() => {
-                            activeLongPressInterval.current = setInterval(
-                                () => {
-                                    setCurrentBpm(-10);
-                                },
-                                75
-                            );
-                        }}
-                        onPressOut={() => {
-                            clearInterval(activeLongPressInterval.current);
-                        }}
-                    >
-                        <MaterialCommunityIcons name="minus-thick" />
-                    </PaperButton>
-                    <PaperButton
-                        compact
-                        style={{
-                            borderRadius: 12,
-                            width: 50,
-                        }}
-                        elevation={5}
-                        mode="elevated"
-                        onPress={() => {
-                            setCurrentBpm(-1);
-                        }}
-                        onLongPress={() => {
-                            activeLongPressInterval.current = setInterval(
-                                () => {
-                                    setCurrentBpm(-1);
-                                },
-                                75
-                            );
-                        }}
-                        onPressOut={() => {
-                            clearInterval(activeLongPressInterval.current);
-                        }}
-                    >
-                        <MaterialCommunityIcons name="minus" />
-                    </PaperButton>
-                    <View
-                        style={{
-                            backgroundColor:
-                                activeTheme.colors.elevation.level1,
-                            elevation: 5,
-                            borderRadius: 12,
-                            paddingVertical: 10,
-                            paddingHorizontal: 25,
-                            justifyContent: "center",
-                            alignContent: "center",
-                        }}
-                    >
-                        <PaperText
-                            style={{
-                                textAlign: "center",
+
+                <View style={style.controlSection}>
+                    <PaperText variant="labelLarge" style={style.label}>
+                        BPM
+                    </PaperText>
+                    <View style={style.controlRow}>
+                        <PaperButton
+                            compact
+                            style={style.button}
+                            elevation={5}
+                            mode="elevated"
+                            onPress={() => {
+                                setCurrentBpm(-10);
+                            }}
+                            onLongPress={() => {
+                                activeLongPressInterval.current = setInterval(
+                                    () => {
+                                        setCurrentBpm(-10);
+                                    },
+                                    75
+                                );
+                            }}
+                            onPressOut={() => {
+                                clearInterval(activeLongPressInterval.current);
                             }}
                         >
-                            {currentBpm}
-                        </PaperText>
+                            <MaterialCommunityIcons name="minus-thick" />
+                        </PaperButton>
+                        <PaperButton
+                            compact
+                            style={style.button}
+                            elevation={5}
+                            mode="elevated"
+                            onPress={() => {
+                                setCurrentBpm(-1);
+                            }}
+                            onLongPress={() => {
+                                activeLongPressInterval.current = setInterval(
+                                    () => {
+                                        setCurrentBpm(-1);
+                                    },
+                                    75
+                                );
+                            }}
+                            onPressOut={() => {
+                                clearInterval(activeLongPressInterval.current);
+                            }}
+                        >
+                            <MaterialCommunityIcons name="minus" />
+                        </PaperButton>
+
+                        <View
+                            style={{
+                                backgroundColor:
+                                    activeTheme.colors.elevation.level1,
+                                elevation: 5,
+                                borderRadius: 12,
+                                paddingVertical: 10,
+                                paddingHorizontal: 25,
+                                justifyContent: "center",
+                                alignContent: "center",
+                            }}
+                        >
+                            <PaperText style={style.valueText}>
+                                {currentBpm}
+                            </PaperText>
+                        </View>
+
+                        <PaperButton
+                            compact
+                            elevation={5}
+                            style={style.button}
+                            mode="elevated"
+                            onPress={() => {
+                                setCurrentBpm(1);
+                            }}
+                            onLongPress={() => {
+                                activeLongPressInterval.current = setInterval(
+                                    () => {
+                                        setCurrentBpm(1);
+                                    },
+                                    75
+                                );
+                            }}
+                            onPressOut={() => {
+                                clearInterval(activeLongPressInterval.current);
+                            }}
+                        >
+                            <MaterialCommunityIcons name="plus" />
+                        </PaperButton>
+                        <PaperButton
+                            compact
+                            elevation={5}
+                            style={style.button}
+                            mode="elevated"
+                            onPress={() => {
+                                setCurrentBpm(10);
+                            }}
+                            onLongPress={() => {
+                                activeLongPressInterval.current = setInterval(
+                                    () => {
+                                        setCurrentBpm(10);
+                                    },
+                                    75
+                                );
+                            }}
+                            onPressOut={() => {
+                                clearInterval(activeLongPressInterval.current);
+                            }}
+                        >
+                            <MaterialCommunityIcons name="plus-thick" />
+                        </PaperButton>
                     </View>
-                    <PaperButton
-                        compact
-                        elevation={5}
-                        style={{
-                            borderRadius: 12,
-                            width: 50,
-                        }}
-                        mode="elevated"
-                        onPress={() => {
-                            setCurrentBpm(1);
-                        }}
-                        onLongPress={() => {
-                            activeLongPressInterval.current = setInterval(
-                                () => {
-                                    setCurrentBpm(1);
-                                },
-                                75
-                            );
-                        }}
-                        onPressOut={() => {
-                            clearInterval(activeLongPressInterval.current);
-                        }}
-                    >
-                        <MaterialCommunityIcons name="plus" />
-                    </PaperButton>
-                    <PaperButton
-                        compact
-                        elevation={5}
-                        style={{
-                            borderRadius: 12,
-                            width: 50,
-                        }}
-                        mode="elevated"
-                        onPress={() => {
-                            setCurrentBpm(10);
-                        }}
-                        onLongPress={() => {
-                            activeLongPressInterval.current = setInterval(
-                                () => {
-                                    setCurrentBpm(10);
-                                },
-                                75
-                            );
-                        }}
-                        onPressOut={() => {
-                            clearInterval(activeLongPressInterval.current);
-                        }}
-                    >
-                        <MaterialCommunityIcons name="plus-thick" />
-                    </PaperButton>
                 </View>
+
+                <View style={style.controlSection}>
+                    <PaperText variant="labelLarge" style={style.label}>
+                        Beats Per Bar
+                    </PaperText>
+                    <View style={style.controlRow}>
+                        <PaperButton
+                            compact
+                            style={style.button}
+                            disabled={beatsPerBar === 2}
+                            elevation={5}
+                            mode="elevated"
+                            onPress={() => {
+                                setBeatsPerBar(-1);
+                            }}
+                        >
+                            <MaterialCommunityIcons name="minus" />
+                        </PaperButton>
+
+                        <View
+                            style={{
+                                backgroundColor:
+                                    activeTheme.colors.elevation.level1,
+                                elevation: 5,
+                                borderRadius: 12,
+                                paddingVertical: 10,
+                                paddingHorizontal: 25,
+                                justifyContent: "center",
+                                alignContent: "center",
+                            }}
+                        >
+                            <PaperText style={style.valueText}>
+                                {beatsPerBar}
+                            </PaperText>
+                        </View>
+
+                        <PaperButton
+                            compact
+                            elevation={5}
+                            style={style.button}
+                            disabled={beatsPerBar === 9}
+                            mode="elevated"
+                            onPress={() => {
+                                setBeatsPerBar(1);
+                            }}
+                        >
+                            <MaterialCommunityIcons name="plus" />
+                        </PaperButton>
+                    </View>
+                </View>
+
                 <FAB
                     icon={isPlaying ? "pause" : "play"}
                     mode="elevated"
-                    style={{
-                        marginRight: 0,
-                        alignSelf: "center",
-                        marginBottom: 15,
-                    }}
+                    style={style.fab}
                     onPress={toggleMetronome}
                 />
             </View>
@@ -240,5 +283,37 @@ const style = StyleSheet.create({
         padding: 7,
         justifyContent: "center",
         alignItems: "center",
+        gap: 24,
+    },
+    controlSection: {
+        alignItems: "center",
+        gap: 12,
+    },
+    label: {
+        opacity: 0.7,
+    },
+    controlRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+    },
+    button: {
+        borderRadius: 12,
+        width: 50,
+    },
+    valueDisplay: {
+        elevation: 5,
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 25,
+        justifyContent: "center",
+        alignContent: "center",
+    },
+    valueText: {
+        textAlign: "center",
+    },
+    fab: {
+        marginTop: 8,
     },
 });
