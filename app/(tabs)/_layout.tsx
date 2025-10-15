@@ -61,18 +61,10 @@ export default function RootLayout() {
                     </Modal>
                 </Portal>
                 <Tabs
-                    sceneContainerStyle={{
-                        backgroundColor: activeTheme.colors.background,
-                    }}
                     screenOptions={{
                         headerShown: false,
-                        headerStyle: {
-                            backgroundColor: activeTheme.colors.surfaceVariant,
-                            shadowColor: "transparent",
-                        },
-                        headerTitleStyle: {
-                            // // display: "none",
-                            color: activeTheme.colors.onSurface,
+                        sceneStyle: {
+                            backgroundColor: activeTheme.colors.background,
                         },
                     }}
                     tabBar={({ navigation, state, descriptors, insets }) => (
