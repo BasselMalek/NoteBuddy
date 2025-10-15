@@ -21,6 +21,7 @@ function Pendulum(props: {
     sourceColor: string;
     targetColor: string;
     bpm: number;
+    signature: number;
 }) {
     const translateX = useSharedValue<number>(0);
     const tickerSpringConfig = {
@@ -28,13 +29,6 @@ function Pendulum(props: {
         dampingRatio: 0.7,
         overshootClamping: false,
     };
-    useAnimatedReaction(
-        () => props.progress?.value,
-        (prev, now) => {
-            console.log(now);
-        },
-        []
-    );
 
     const tickerAnimatedStyle = useAnimatedStyle(() =>
         props.progress
@@ -43,15 +37,15 @@ function Pendulum(props: {
                       {
                           translateX: props.metronomeStatus
                               ? withSpring(
-                                    (props.progress.value + 1) % 2 == 0
-                                        ? translateX.value + 110
-                                        : translateX.value - 110,
+                                    translateX.value +
+                                        (props.progress.value *
+                                            (220 / (props.signature - 1)) -
+                                            110),
                                     {
                                         stiffness: 1825,
                                         damping: 120,
-                                        mass: 5,
+                                        mass: 6,
                                         overshootClamping: false,
-                                        energyThreshold: 6e-9,
                                     }
                                 )
                               : withSpring(0),

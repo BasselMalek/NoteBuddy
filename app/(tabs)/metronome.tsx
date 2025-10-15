@@ -5,18 +5,32 @@ import {
     FAB,
     useTheme,
 } from "react-native-paper";
-import { useState, useRef, useReducer, useEffect } from "react";
+import { useState, useRef, useReducer, useEffect, useCallback } from "react";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pendulum } from "@/components/Pendulum";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import useMetronomePlayer from "@/hooks/useMetronomePlayer";
+import { useFocusEffect } from "expo-router";
+import { useAnimatedReaction } from "react-native-reanimated";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
     const activeTheme = useTheme();
     const activeLongPressInterval = useRef<any>(null);
     const [isPlayingOverall, setIsPlayingOverall] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            () => {
+                return () => {
+                    stop();
+                    setIsPlayingOverall(false);
+                    deactivateKeepAwake();
+                };
+            };
+        }, [])
+    );
 
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
@@ -32,19 +46,24 @@ export default function Metronome() {
         120
     );
 
-    const { isPlaying, play, stop, load, currentBeat, progressSV } =
-        useMetronomePlayer({
-            bpm: currentBpm,
-            numBeats: 4,
-        });
+    const { isPlaying, play, stop, load, currentBeat } = useMetronomePlayer({
+        bpm: currentBpm,
+        numBeats: 6,
+    });
 
     useEffect(() => {
         if (load) {
             load();
         }
-
-        return () => {};
     }, [load]);
+
+    useAnimatedReaction(
+        () => currentBeat?.value,
+        (prev, now) => {
+            console.log(now! * (220 / 5) - 110);
+        },
+        []
+    );
 
     const toggleMetronome = () => {
         if (isPlaying) {
@@ -72,6 +91,7 @@ export default function Metronome() {
                 <Pendulum
                     bpm={currentBpm}
                     progress={currentBeat}
+                    signature={6}
                     metronomeStatus={isPlayingOverall}
                     sourceColor={activeTheme.colors.surfaceVariant}
                     targetColor={activeTheme.colors.tertiary}
