@@ -164,8 +164,11 @@ export default function useMetronomePlayer(options: PlayerOptions) {
         playNote.current = (beat: BeatType, scheduledTime: number) => {
             if (beat === "downbeat") {
                 const downBeat = audioContext.current!.createBufferSource();
+                const gain = audioContext.current!.createGain();
                 downBeat.buffer = downBuffer;
-                downBeat.connect(audioContext.current!.destination);
+                downBeat.connect(gain);
+                gain.connect(audioContext.current!.destination);
+                gain.gain.value = 5;
                 downBeat.start(scheduledTime);
                 downBeat.stop(scheduledTime + CLICK_DURATION);
             } else {

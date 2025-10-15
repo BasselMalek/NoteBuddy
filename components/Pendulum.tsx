@@ -1,25 +1,23 @@
 import { View, StyleSheet } from "react-native";
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import Animated, {
-    interpolate,
-    interpolateColor,
+    SharedValue,
+    SnappySpringConfig,
+    useAnimatedReaction,
     useAnimatedStyle,
     useSharedValue,
     withRepeat,
     withSequence,
     withSpring,
-    withTiming,
-    Easing,
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
 interface TimeSignature {
     beats: number;
     beatValue: number;
 }
 
 function Pendulum(props: {
-    // beats: number;
     metronomeStatus: boolean;
+    progress?: SharedValue<number>;
     sourceColor: string;
     targetColor: string;
     bpm: number;
@@ -27,37 +25,70 @@ function Pendulum(props: {
     const translateX = useSharedValue<number>(0);
     const tickerSpringConfig = {
         duration: 60000 / props.bpm - (60000 / props.bpm) * 0.2,
-        dampingRatio: 0.6,
+        dampingRatio: 0.7,
         overshootClamping: false,
     };
+    useAnimatedReaction(
+        () => props.progress?.value,
+        (prev, now) => {
+            console.log(now);
+        },
+        []
+    );
 
-    const tickerAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [
-            {
-                translateX: props.metronomeStatus
-                    ? withSequence(
-                          withSpring(
-                              translateX.value + 110,
-                              tickerSpringConfig
-                          ),
-                          withRepeat(
-                              withSequence(
-                                  withSpring(
-                                      translateX.value - 110,
-                                      tickerSpringConfig
-                                  ),
-                                  withSpring(
-                                      translateX.value + 110,
-                                      tickerSpringConfig
-                                  )
-                              ),
-                              -1
-                          )
-                      )
-                    : withSpring(0, tickerSpringConfig),
-            },
-        ],
-    }));
+    const tickerAnimatedStyle = useAnimatedStyle(() =>
+        props.progress
+            ? {
+                  transform: [
+                      {
+                          translateX: props.metronomeStatus
+                              ? withSpring(
+                                    (props.progress.value + 1) % 2 == 0
+                                        ? translateX.value + 110
+                                        : translateX.value - 110,
+                                    {
+                                        stiffness: 1825,
+                                        damping: 120,
+                                        mass: 5,
+                                        overshootClamping: false,
+                                        energyThreshold: 6e-9,
+                                    }
+                                )
+                              : withSpring(0),
+                      },
+                  ],
+              }
+            : {
+                  transform: [
+                      {
+                          translateX: props.metronomeStatus
+                              ? withSequence(
+                                    withSpring(translateX.value + 110, {
+                                        ...tickerSpringConfig,
+                                        duration:
+                                            (60000 / props.bpm -
+                                                (60000 / props.bpm) * 0.3) *
+                                            0.5,
+                                    }),
+                                    withRepeat(
+                                        withSequence(
+                                            withSpring(
+                                                translateX.value - 110,
+                                                tickerSpringConfig
+                                            ),
+                                            withSpring(
+                                                translateX.value + 110,
+                                                tickerSpringConfig
+                                            )
+                                        ),
+                                        -1
+                                    )
+                                )
+                              : withSpring(0, tickerSpringConfig),
+                      },
+                  ],
+              }
+    );
 
     return (
         <View

@@ -32,10 +32,11 @@ export default function Metronome() {
         120
     );
 
-    const { isPlaying, play, stop, load } = useMetronomePlayer({
-        bpm: currentBpm,
-        numBeats: 4,
-    });
+    const { isPlaying, play, stop, load, currentBeat, progressSV } =
+        useMetronomePlayer({
+            bpm: currentBpm,
+            numBeats: 4,
+        });
 
     useEffect(() => {
         if (load) {
@@ -70,6 +71,7 @@ export default function Metronome() {
             <View style={style.rootContainer}>
                 <Pendulum
                     bpm={currentBpm}
+                    progress={currentBeat}
                     metronomeStatus={isPlayingOverall}
                     sourceColor={activeTheme.colors.surfaceVariant}
                     targetColor={activeTheme.colors.tertiary}
