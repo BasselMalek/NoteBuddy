@@ -35,9 +35,8 @@ export default function Account() {
     const [highlightedDur, setHighlightedDur] = useState("Press to highlight");
     const [durationGraphScale, setDurationGraphScale] = useState("7D");
     const [difficultyGraphScale, setdifficultyGraphScale] = useState("7D");
-    const activeTheme = useTheme();
+    const { colors } = useTheme();
     const LiveCRUD = useCRUDService();
-    const safeInsets = useSafeAreaInsets();
 
     useFocusEffect(
         useCallback(() => {
@@ -94,259 +93,173 @@ export default function Account() {
         <View
             style={{
                 flex: 1,
-                paddingTop: safeInsets.top + 5,
-                paddingBottom: safeInsets.bottom,
-                paddingRight: safeInsets.right,
-                paddingLeft: safeInsets.left,
+                justifyContent: "center",
+                gap: 10,
             }}
         >
-            <View style={styles.rootContainer}>
-                <View style={{ flex: 4, flexDirection: "row", gap: 5 }}>
-                    <Card
-                        style={{
-                            ...styles.card,
-                            flex: 6,
-                        }}
-                    >
-                        <PaperText
-                            style={{
-                                color: activeTheme.colors.onTertiaryContainer,
-                                marginBottom: 5,
-                            }}
-                        >
-                            {"Streak"}
-                        </PaperText>
-                        <View
-                            style={{
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <StreakCircle
-                                level={activeUser?.currentStreak}
-                                filled={activeTheme.colors.tertiary}
-                                unfilled={activeTheme.colors.surfaceVariant}
-                            />
-                        </View>
-                    </Card>
-                    <Card
-                        style={{
-                            ...styles.card,
-                            paddingHorizontal: 10,
-                            flex: 13,
-                        }}
-                    >
-                        <PaperText
-                            style={{
-                                color: activeTheme.colors.onTertiaryContainer,
-                                marginBottom: 5,
-                            }}
-                        >
-                            {"Stats"}
-                        </PaperText>
-                        <View
-                            style={{
-                                borderRadius: 10,
-                                backgroundColor: activeTheme.dark
-                                    ? "rgba(10,10,10,0.3)"
-                                    : `rgba(${activeTheme.colors.tertiary.slice(
-                                          5,
-                                          -1
-                                      )},0.1)`,
-                                flexDirection: "column",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                padding: 5,
-                            }}
-                        >
-                            <View style={{ flexDirection: "row", gap: 5 }}>
-                                <PaperText style={styles.item}>
-                                    {"Days Practiced\n"}
-                                    <PaperText
-                                        style={{
-                                            alignSelf: "center",
-                                            lineHeight: 28,
-                                        }}
-                                    >
-                                        {totalDays}
-                                    </PaperText>
-                                </PaperText>
-                            </View>
-                            <View style={{ flexDirection: "row", gap: 5 }}>
-                                <PaperText style={styles.item}>
-                                    {"Longest Streak\n"}
-                                    <PaperText
-                                        style={{
-                                            alignSelf: "center",
-                                            lineHeight: 28,
-                                        }}
-                                    >
-                                        {activeUser?.longestStreak === undefined
-                                            ? 0
-                                            : activeUser!.longestStreak}
-                                    </PaperText>
-                                </PaperText>
-                            </View>
-                        </View>
-                    </Card>
-                </View>
+            <View style={{ flex: 4, flexDirection: "row", gap: 10 }}>
                 <Card
                     style={{
                         ...styles.card,
-                        flex: 7,
-                    }}
-                    onLayout={(e) => {
-                        setChartHeight(e.nativeEvent.layout.height);
-                        setChartWidth(e.nativeEvent.layout.width);
+                        flex: 6,
                     }}
                 >
-                    <PaperText
+                    <Card.Title
+                        title="Streak"
+                        titleStyle={{ color: colors.onSecondaryContainer }}
+                        style={{ paddingLeft: 8 }}
+                    />
+                    <Card.Content
                         style={{
-                            color: activeTheme.colors.onTertiaryContainer,
-                            marginBottom: 10,
+                            alignItems: "center",
                         }}
                     >
-                        {"Duration"}
-                    </PaperText>
-                    {/* <SegmentedButtons
-                            value={durationGraphScale}
-                            onValueChange={(value) => {
-                                setDurationGraphScale(value);
-                            }}
-                            theme={{
-                                colors: {
-                                    secondaryContainer:
-                                        "rgba(106, 219, 167, 0.3)",
-                                },
-                            }}
-                            style={{
-                                marginBottom: 15,
-                            }}
-                            density="high"
-                            buttons={[
-                                {
-                                    value: "7D",
-                                    label: "7D",
-                                    labelStyle: { fontWeight: "bold" },
-                                },
-                                {
-                                    value: "30D",
-                                    label: "30D",
-                                    labelStyle: { fontWeight: "bold" },
-                                },
-                                {
-                                    value: "360D",
-                                    label: "360D",
-                                    labelStyle: { fontWeight: "bold" },
-                                },
-                            ]}
-                        /> */}
-                    <View>
-                        <View
-                            style={[
-                                styles.chartHighlight,
-                                {
-                                    backgroundColor: activeTheme.dark
-                                        ? "rgba(10,10,10,0.3)"
-                                        : `rgba(${activeTheme.colors.tertiary.slice(
-                                              5,
-                                              -1
-                                          )},0.1)`,
-                                },
-                            ]}
-                        >
-                            <PaperText style={styles.chartHighlightText}>
-                                {dataDur.length! < 3
-                                    ? "Log more entires to acccess stats"
-                                    : highlightedDur}
-                            </PaperText>
-                        </View>
-                        <ThemeableChart
-                            hidden={dataDur.length < 3}
-                            data={dataDur!}
-                            width={chartWidth + 1}
-                            highlightFunction={(item: any) => {
-                                setHighlightedDur(item.dataPointText);
-                            }}
-                            //* Change it to 85 when seg buttons are used.
-                            height={chartHeight - 48}
-                            lineColor={activeTheme.colors.tertiary}
-                            startColor={activeTheme.colors.tertiary}
-                            endColor={activeTheme.colors.tertiary}
+                        <StreakCircle
+                            level={totalDays}
+                            filled={colors.secondary}
+                            unfilled={colors.surfaceVariant}
                         />
-                    </View>
+                    </Card.Content>
                 </Card>
                 <Card
                     style={{
                         ...styles.card,
-                        flex: 7,
+                        flex: 13,
                     }}
                 >
-                    <PaperText
-                        style={{
-                            color: activeTheme.colors.onTertiaryContainer,
-                            marginBottom: 10,
-                        }}
-                    >
-                        {"Difficulty"}
-                    </PaperText>
-                    <View>
-                        <View
-                            style={[
-                                styles.chartHighlight,
-                                {
-                                    backgroundColor: activeTheme.dark
-                                        ? "rgba(10,10,10,0.3)"
-                                        : `rgba(${activeTheme.colors.tertiary.slice(
-                                              5,
-                                              -1
-                                          )},0.1)`,
-                                },
-                            ]}
-                        >
-                            <PaperText style={styles.chartHighlightText}>
-                                {dataDur.length! < 3
-                                    ? "Log more entires to acccess stats"
-                                    : highlightedDiff}
+                    <Card.Title
+                        title="Stats"
+                        titleStyle={{ color: colors.onSecondaryContainer }}
+                        style={{ paddingLeft: 8 }}
+                    />
+                    <Card.Content>
+                        <View style={styles.statRow}>
+                            <PaperText style={styles.statLabel}>
+                                Current Streak
+                            </PaperText>
+                            <PaperText style={styles.statValue}>
+                                {activeUser?.currentStreak ?? 0}
                             </PaperText>
                         </View>
-                        <ThemeableChart
-                            hidden={dataDiff.length < 3}
-                            data={dataDiff!}
-                            width={chartWidth + 1}
-                            highlightFunction={(item: any) => {
-                                setHighlightedDiff(item.dataPointText);
-                            }}
-                            height={chartHeight - 48}
-                            lineColor={activeTheme.colors.tertiary}
-                            startColor={activeTheme.colors.tertiary}
-                            endColor={activeTheme.colors.tertiary}
-                        />
-                    </View>
+                        <View style={styles.statRow}>
+                            <PaperText style={styles.statLabel}>
+                                Longest Streak
+                            </PaperText>
+                            <PaperText style={styles.statValue}>
+                                {activeUser?.longestStreak ?? 0}
+                            </PaperText>
+                        </View>
+                    </Card.Content>
                 </Card>
             </View>
+            <Card
+                style={{
+                    ...styles.card,
+                    flex: 7,
+                }}
+                onLayout={(e) => {
+                    setChartHeight(e.nativeEvent.layout.height);
+                    setChartWidth(e.nativeEvent.layout.width + 7);
+                }}
+            >
+                <Card.Title
+                    title="Duration"
+                    titleStyle={{ color: colors.onSecondaryContainer }}
+                    style={{ paddingLeft: 8 }}
+                />
+                <Card.Content
+                    style={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                >
+                    <View
+                        style={[
+                            styles.chartHighlight,
+                            {
+                                backgroundColor: colors.surfaceVariant,
+                            },
+                        ]}
+                    >
+                        <PaperText style={styles.chartHighlightText}>
+                            {dataDur.length! < 3
+                                ? "Log more entires to acccess stats"
+                                : highlightedDur}
+                        </PaperText>
+                    </View>
+                    <ThemeableChart
+                        hidden={dataDur.length < 3}
+                        data={dataDur!}
+                        width={chartWidth}
+                        highlightFunction={(item: any) => {
+                            setHighlightedDur(item.dataPointText);
+                        }}
+                        height={chartHeight - 60}
+                        lineColor={colors.secondary}
+                        startColor={colors.secondary}
+                        endColor={colors.secondary}
+                    />
+                </Card.Content>
+            </Card>
+            <Card
+                style={{
+                    ...styles.card,
+                    flex: 7,
+                }}
+            >
+                <Card.Title
+                    title="Difficulty"
+                    titleStyle={{ color: colors.onSecondaryContainer }}
+                    style={{ paddingLeft: 8 }}
+                />
+                <Card.Content
+                    style={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                >
+                    <View
+                        style={[
+                            styles.chartHighlight,
+                            {
+                                backgroundColor: colors.surfaceVariant,
+                            },
+                        ]}
+                    >
+                        <PaperText style={styles.chartHighlightText}>
+                            {dataDur.length! < 3
+                                ? "Log more entires to acccess stats"
+                                : highlightedDiff}
+                        </PaperText>
+                    </View>
+                    <ThemeableChart
+                        hidden={dataDiff.length < 3}
+                        data={dataDiff!}
+                        width={chartWidth}
+                        highlightFunction={(item: any) => {
+                            setHighlightedDiff(item.dataPointText);
+                        }}
+                        height={chartHeight - 60}
+                        lineColor={colors.secondary}
+                        startColor={colors.secondary}
+                        endColor={colors.secondary}
+                    />
+                </Card.Content>
+            </Card>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    rootContainer: {
-        flex: 1,
-        justifyContent: "center",
-        padding: 5,
-        rowGap: 5,
-    },
     card: {
-        padding: 7,
+        flex: 1,
         overflow: "hidden",
     },
-    cardTitle: {
-        marginBottom: 5,
-    },
-    row: {
+    statRow: {
         flexDirection: "row",
-        marginBottom: 8,
-        justifyContent: "center",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    statLabel: {
+        fontSize: 16,
+    },
+    statValue: {
+        fontSize: 20,
+        fontWeight: "bold",
     },
     item: {
         flex: 1,
@@ -354,13 +267,16 @@ const styles = StyleSheet.create({
     },
     chartHighlight: {
         borderRadius: 10,
-        backgroundColor: "rgba(10,10,10,0.2)",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
-        padding: 5,
+        padding: 7,
         position: "absolute",
+        top: 0,
+        right: 0,
+        margin: 8,
         alignSelf: "flex-end",
+        zIndex: 1,
     },
     chartHighlightText: {
         textAlign: "center",

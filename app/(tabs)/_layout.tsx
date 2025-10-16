@@ -14,12 +14,15 @@ import CRUDProvider from "@/components/CRUDProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import CreateUserForm from "@/components/CreateUserForm";
 import { enGB, registerTranslation } from "react-native-paper-dates";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 10000 } },
 });
 export default function RootLayout() {
     const activeTheme = useTheme();
+    const insets = useSafeAreaInsets();
     const [activeCrud, setActiveCrud] = useState<CRUDService>();
     const [isModalVisible, setIsModalVisible] = useState(false);
     useEffect(() => {
@@ -36,6 +39,7 @@ export default function RootLayout() {
     return (
         <CRUDProvider value={activeCrud!}>
             <QueryClientProvider client={queryClient}>
+                <StatusBar translucent />
                 <Portal>
                     <Modal
                         visible={isModalVisible}
@@ -64,17 +68,18 @@ export default function RootLayout() {
                     screenOptions={{
                         headerShown: false,
                         sceneStyle: {
+                            flex: 1,
                             backgroundColor: activeTheme.colors.background,
+                            paddingTop: insets.top + 10,
+                            paddingRight: insets.right + 10,
+                            paddingLeft: insets.left + 10,
+                            paddingBottom: 10,
                         },
                     }}
                     tabBar={({ navigation, state, descriptors, insets }) => (
                         <BottomNavigation.Bar
                             theme={activeTheme}
                             navigationState={state}
-                            style={{
-                                backgroundColor:
-                                    activeTheme.colors.surfaceVariant,
-                            }}
                             safeAreaInsets={insets}
                             onTabPress={({ route, preventDefault }) => {
                                 const event = navigation.emit({

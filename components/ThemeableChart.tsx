@@ -16,12 +16,12 @@ function ThemeableChart(props: {
                 height={props.height}
                 areaChart
                 width={props.width}
-                initialSpacing={2}
+                initialSpacing={0}
+                endSpacing={0}
                 startFillColor={props.startColor}
                 startOpacity={0.6}
                 endOpacity={0.2}
                 endFillColor={props.endColor}
-                endSpacing={0}
                 adjustToWidth
                 disableScroll
                 curved
