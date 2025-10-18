@@ -1,25 +1,13 @@
+import { EntryData } from "@/hooks/useCRUD";
 import React from "react";
 import { View, StyleProp, ViewStyle } from "react-native";
 import { Card, Text, useTheme } from "react-native-paper";
-import { Item } from "react-native-paper/lib/typescript/components/List/List";
 
 const unixIntToString = (unixMS: number) => {
     const m = Math.round(unixMS / 1000 / 60);
     const hr = Math.floor(m / 60);
     return hr + "hrs " + (m - hr * 60) + "m";
 };
-
-interface EntryData {
-    date: Date;
-    title: string;
-    durationTime: number;
-    durationFrom: Date;
-    durationTo: Date;
-    rating: number;
-    desc: string;
-    submit?: boolean;
-    submitAction?: "add" | "update";
-}
 
 interface DisplayEntryProps {
     entryData: EntryData;
@@ -35,7 +23,7 @@ export const DisplayEntry = ({
     selected = false,
 }: DisplayEntryProps) => {
     const { colors } = useTheme();
-    const { date, title, rating, durationTime, desc } = entryData;
+    const { date, title, rating, duration, desc } = entryData;
 
     return (
         <Card
@@ -98,8 +86,8 @@ export const DisplayEntry = ({
                             })
                             .concat(" • ")}
                         {Array.from({ length: rating }, () => "s").join("")}
-                        {rating > 0 && durationTime > 0 ? " • " : ""}
-                        {durationTime > 0 ? unixIntToString(durationTime) : ""}
+                        {rating > 0 && duration > 0 ? " • " : ""}
+                        {duration > 0 ? unixIntToString(duration) : ""}
                     </Text>
                 </View>
             </Card.Content>

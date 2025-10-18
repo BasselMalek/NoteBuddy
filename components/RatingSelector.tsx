@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { TouchableRipple, useTheme } from "react-native-paper";
+import { Icon, TouchableRipple, useTheme } from "react-native-paper";
 import { View } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 
 export default function RatingSelector(props: {
     ratingState: number;
-    ratingHandler: Function;
+    ratingHandler: (rating: number) => void;
     error?: boolean;
 }) {
     const activeTheme = useTheme();
-    const [starStates, setStarStates] = useState<
-        ("star" | "staro" | undefined)[]
-    >([]);
+    const [starStates, setStarStates] = useState<("star" | "star-outline")[]>(
+        []
+    );
 
     useEffect(() => {
         const newStarStates = Array.from({ length: 5 }, (_, index) =>
-            index + 1 <= props.ratingState ? "star" : "staro"
+            index + 1 <= props.ratingState ? "star" : "star-outline"
         );
         setStarStates(newStarStates);
     }, [props.ratingState]);
@@ -29,18 +28,17 @@ export default function RatingSelector(props: {
                         props.ratingHandler(index + 1);
                     }}
                 >
-                    <AntDesign
-                        name={val}
+                    <Icon
+                        source={val}
                         size={32}
-                        style={{
-                            color:
-                                props.error ?? false
-                                    ? activeTheme.colors.error
-                                    : props.ratingState === 0
-                                    ? activeTheme.colors.outline
-                                    : activeTheme.colors.onPrimaryContainer,
-                        }}
-                    ></AntDesign>
+                        color={
+                            props.error
+                                ? activeTheme.colors.error
+                                : props.ratingState === 0
+                                ? activeTheme.colors.outline
+                                : activeTheme.colors.onPrimaryContainer
+                        }
+                    />
                 </TouchableRipple>
             ))}
         </View>
