@@ -3,7 +3,7 @@ import React from "react";
 import { View, StyleProp, ViewStyle } from "react-native";
 import { Card, Icon, Text, useTheme } from "react-native-paper";
 
-const unixIntToString = (unixMS: number) => {
+export const unixIntToString = (unixMS: number) => {
     const m = Math.round(unixMS / 1000 / 60);
     const hr = Math.floor(m / 60);
     return hr + "hrs " + (m - hr * 60) + "m";

@@ -111,7 +111,7 @@ export const useEntryCRUD = (db: SQL.SQLiteDatabase) => {
         } catch (error) {
             console.error("Failed to get entries:", error);
         }
-        return new Promise((resolve) => []);
+        return [];
     };
 
     return {
