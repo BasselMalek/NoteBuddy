@@ -1,69 +1,28 @@
 import { View, StyleSheet } from "react-native";
 import {
     Card,
-    Text as PaperText,
-    PaperProvider,
-    Button,
+    Text,
     useTheme,
     IconButton,
+    FAB,
+    Button,
 } from "react-native-paper";
-import { Entry, EntryData } from "@/components/Entry";
-import React, { useEffect, useState, Suspense } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FlashList } from "@shopify/flash-list";
+import { DisplayEntry } from "@/components/EntryCard";
+import { dummyEntries } from "@/constants/Dummy";
+import React, { useState } from "react";
 
 const currentDay = new Date();
 
 export default function Practice() {
-    const safeInsets = useSafeAreaInsets();
-    const { colors, roundness } = useTheme();
-    const LiveCRUD = useCRUDService();
-    const [selectedDate, setSelectedDate] = useState(currentDay);
-    const [reloadFlag, setReloadFlag] = useState(false);
-    const [active, setActive] = useState(false);
-    const [loadedEntry, setLoadedEntry] = useState<EntryData>({
-        date: currentDay,
-        title: "",
-        rating: 0,
-        desc: "",
-        durationFrom: new Date(),
-        durationTo: new Date(),
-        durationTime: 0,
-        submit: false,
-        submitAction: "add",
-    });
-
-    const queryClient = useQueryClient();
-    const entryMutator = useMutation(
-        {
-            mutationFn: (entry: EntryData) => LiveCRUD!.mutateRecord(entry),
-        },
-        queryClient
-    );
-
-    useEffect(() => {
-        if (LiveCRUD != null) {
-            (async () => {
-                const data = await queryClient.fetchQuery({
-                    queryKey: ["entry", selectedDate],
-                    queryFn: () =>
-                        LiveCRUD!.queryRecord(
-                            selectedDate.toISOString().slice(0, 10)
-                        ),
-                });
-                setLoadedEntry(mapResToEntry(data, selectedDate));
-                setReloadFlag(false);
-            })();
-        }
-        return () => {};
-    }, [selectedDate, LiveCRUD, reloadFlag]);
+    const { colors } = useTheme();
+    const [selected, setSelected] = useState<Date | null>(null);
 
     return (
         <View
             style={{
                 flex: 1,
-                gap: 10,
+                flexDirection: "column-reverse",
             }}
         >
             <View
@@ -71,104 +30,69 @@ export default function Practice() {
                     flexDirection: "row",
                     justifyContent: "center",
                     alignItems: "center",
-                    paddingHorizontal: 20,
-                    columnGap: 10,
-                    height: 50,
+                    gap: 10,
+                    padding: 10,
+                    // paddingBottom: 0,
                 }}
             >
-                <IconButton
-                    disabled={active}
-                    icon={"chevron-left"}
-                    iconColor={colors.primary}
-                    containerColor={colors.elevation.level5}
+                <Button
+                    icon={"calendar"}
+                    mode="elevated"
+                    elevation={5}
                     style={{
-                        borderRadius: 12,
-                        width: 50,
-                        height: 45,
-                    }}
-                    mode="contained"
-                    onPress={() => {
-                        setSelectedDate(
-                            new Date(
-                                selectedDate.getTime() - 1 * 24 * 3600 * 1000
-                            )
-                        );
-                    }}
-                />
-                <View
-                    style={{
-                        backgroundColor: colors.elevation.level1,
-                        elevation: 5,
-                        borderRadius: 12,
-                        padding: 15,
+                        borderRadius: 24,
+                        height: 50,
                         justifyContent: "center",
-                        alignContent: "center",
+                        alignItems: "center",
                     }}
                 >
-                    <PaperText
-                        style={{
-                            textAlign: "center",
-                        }}
-                    >
-                        {selectedDate.toDateString()}
-                    </PaperText>
-                </View>
-                <IconButton
-                    icon={"chevron-right"}
-                    containerColor={colors.elevation.level5}
-                    disabled={
-                        selectedDate.toDateString() ===
-                            currentDay.toDateString() || active
-                    }
+                    {currentDay.toDateString()}
+                </Button>
+                <FAB
+                    color={colors.primary}
+                    customSize={48}
+                    icon={selected ? "trash-can" : "plus"}
                     style={{
-                        borderRadius: 12,
-                        width: 50,
-                        height: 45,
-                    }}
-                    mode="contained"
-                    onPress={() => {
-                        setSelectedDate(
-                            new Date(
-                                selectedDate.getTime() + 1 * 24 * 3600 * 1000
-                            )
-                        );
+                        borderRadius: 240,
+                        backgroundColor: colors.elevation.level1,
                     }}
                 />
             </View>
-            <Card style={styles.expandedCard}>
-                <Card.Content>
-                    <Entry
-                        setEditing={(isEditing: boolean) => {
-                            setActive(isEditing);
-                        }}
-                        entryData={loadedEntry!}
-                        onEntryChangeHandler={(editedEntry: EntryData) => {
-                            entryMutator.mutate(editedEntry, {
-                                onSuccess: async (data) => {
-                                    if (data === 1) {
-                                        setReloadFlag(true);
-                                    }
-                                },
-                                onError: (error) => {
-                                    console.error(error);
-                                },
-                            });
-                        }}
-                    />
-                </Card.Content>
-            </Card>
+            <View
+                style={{
+                    flex: 1,
+                    // paddingBottom: 5,
+                }}
+            >
+                <FlashList
+                    fadingEdgeLength={{ start: 40, end: 3 }}
+                    maintainVisibleContentPosition={{
+                        animateAutoScrollToBottom: true,
+                        startRenderingFromBottom: true,
+                        autoscrollToBottomThreshold: 10,
+                    }}
+                    ItemSeparatorComponent={() => (
+                        <View style={{ height: 10 }} />
+                    )}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 10 }}
+                    renderItem={({ item }) => (
+                        <DisplayEntry
+                            entryData={item}
+                            onPress={(date) => {
+                                setSelected(date === selected ? null : date);
+                            }}
+                            selected={selected === item.date}
+                        />
+                    )}
+                    data={dummyEntries}
+                />
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    calendarCard: {
-        display: "flex",
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        flex: 1,
-        marginBottom: 5,
-    },
     expandedCard: {
         display: "flex",
         flex: 3,
