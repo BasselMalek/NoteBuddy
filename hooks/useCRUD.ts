@@ -1,334 +1,134 @@
 import * as SQL from "expo-sqlite";
-import { EntryData } from "@/components/Entry";
-import React, {
-    Context,
-    createContext,
-    useContext,
-    useEffect,
-    useState,
-} from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { usePoints } from "@/hooks/usePracticePoints";
 
-interface MusicianUser {
-    name: string;
-    points: number;
-    currentStreak: number;
-    longestStreak: number;
-    ownedEquipmentIds: string[];
-}
+export type EntryData = {
+    date: Date;
+    rating: number;
+    duration: number;
+    desc: string;
+    title: string;
+    streak: number;
+};
 
-async function storeUser(updatedInfo: {
-    name?: string;
-    points: number;
-    currentStreak: number;
-    ownedEquipmentIds?: string[];
-}): Promise<boolean> {
-    try {
-        const unedited = await readUser();
-        const serialized = JSON.stringify({
-            name: updatedInfo.name || unedited?.name,
-            points: (unedited?.points || 0) + updatedInfo.points,
-            currentStreak: updatedInfo.currentStreak,
-            longestStreak: Math.max(
-                unedited?.longestStreak || 0,
-                updatedInfo.currentStreak
-            ),
-        });
-        await AsyncStorage.setItem("MainUser", serialized);
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
-async function readUser(): Promise<MusicianUser | null> {
-    try {
-        const unparsed = await AsyncStorage.getItem("MainUser");
-        return JSON.parse(unparsed!);
-    } catch (error) {
-        return null;
-    }
-}
-
-class CRUDInterface {
-    private db: SQL.SQLiteDatabase;
-    private retrieveStatement: SQL.SQLiteStatement;
-    private createStatement: SQL.SQLiteStatement;
-    private aggergateDiffStatement: SQL.SQLiteStatement;
-    private aggergateDurStatement: SQL.SQLiteStatement;
-
-    constructor(props: {
-        db: SQL.SQLiteDatabase;
-        retrieveStatement: SQL.SQLiteStatement;
-        createStatement: SQL.SQLiteStatement;
-        aggergateDiffStatement: SQL.SQLiteStatement;
-        aggergateDurStatement: SQL.SQLiteStatement;
-    }) {
-        this.db = props.db;
-        this.retrieveStatement = props.retrieveStatement;
-        this.createStatement = props.createStatement;
-        this.aggergateDiffStatement = props.aggergateDiffStatement;
-        this.aggergateDurStatement = props.aggergateDurStatement;
-    }
-
-    async createTable() {
+export const useEntryCRUD = (db: SQL.SQLiteDatabase) => {
+    const calculateStreak = async (datestamp: Date) => {
         try {
-            this.db.execAsync(
-                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY, title TEXT,startTime TIME,endTime TIME,duration INTEGER,rating INTEGER,description TEXT)"
+            const yesterday = new Date(datestamp.getTime() - 24 * 3600 * 1000);
+            const yesterdayString = yesterday.toISOString().slice(0, 10);
+
+            const result = await db.getFirstAsync<{ streak: number }>(
+                "SELECT streak FROM entries WHERE date = ?;",
+                [yesterdayString]
             );
-        } catch (error) {}
-    }
 
-    async queryRecord(startDate: string): Promise<any> {
-        if (this != null) {
-            try {
-                const rows = await this.retrieveStatement.executeAsync({
-                    $startDate: startDate,
-                });
-                return rows.getFirstAsync();
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
+            return result ? result.streak + 1 : 1;
+        } catch (error) {
+            console.error("Failed to calculate streak:", error);
+            return 0;
         }
-    }
-    async aggregateDiff(startDate?: Date, endDate?: Date): Promise<any> {
-        if (this != null) {
-            try {
-                const rows = await this.aggergateDiffStatement.executeAsync({
-                    $startdate:
-                        startDate != undefined
-                            ? startDate.toISOString().slice(0, 10)
-                            : "1970-01-01",
-                    $enddate:
-                        endDate != undefined
-                            ? endDate.toISOString().slice(0, 10)
-                            : "2038-01-18",
-                });
-                return rows.getAllAsync();
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
-        }
-    }
-    async aggregateDur(startDate?: Date, endDate?: Date): Promise<any> {
-        if (this != null) {
-            try {
-                const rows = await this.aggergateDurStatement.executeAsync({
-                    $startdate:
-                        startDate != undefined
-                            ? startDate.toISOString().slice(0, 10)
-                            : "1970-01-01",
-                    $enddate:
-                        endDate != undefined
-                            ? endDate.toISOString().slice(0, 10)
-                            : "2038-01-18",
-                });
-                return rows.getAllAsync();
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
-        }
-    }
+    };
 
-    async calcStreak(datestamp: Date) {
-        if (this != null) {
-            try {
-                const check = new Date(datestamp.getTime() - 24 * 3600 * 1000);
-                const row: { streak: number } | null =
-                    await this.db.getFirstAsync(
-                        "SELECT streak FROM entries where date = $date;",
-                        check.toISOString().slice(0, 10)
-                    );
-                return row === null ? 0 : row!.streak + 1;
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
-        }
-    }
-
-    async countDays() {
-        if (this != null) {
-            try {
-                const row: { days: number } | null =
-                    await this.db.getFirstAsync(
-                        "SELECT COUNT(*) AS days FROM entries;"
-                    );
-                return row;
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
-        }
-    }
-
-    async mutateRecord(data: EntryData) {
-        if (this != null) {
-            try {
-                const str = await this.calcStreak(data.date);
-                const affectedData = await this.createStatement.executeAsync(
-                    mapEntryToQuery(data, str!)
-                );
-                await storeUser({
-                    points: usePoints(data.durationTime, data.rating, str!),
-                    currentStreak: str!,
-                });
-                return affectedData.changes;
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
-        }
-    }
-    async DEBUG_QUERY_ALL() {
-        if (this != null) {
-            try {
-                return this.db.getAllAsync("SELECT * FROM entries;");
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            throw new Error("Invalid CRUDService.");
-        }
-    }
-    async endService() {
-        this.db.closeAsync();
-    }
-}
-
-type CRUDService = CRUDInterface | null;
-
-const firstTimeSetup = async (database: string): Promise<boolean> => {
-    try {
-        const flag = await AsyncStorage.getItem("firstLaunch");
-        if (flag != "true") {
-            const db = await SQL.openDatabaseAsync("PracticeEntries.db");
-            db.execAsync(
-                "CREATE TABLE IF NOT EXISTS entries (date DATE PRIMARY KEY UNIQUE, title TEXT,startTime TIME,endTime TIME,duration INTEGER,rating INTEGER,description TEXT, streak INTEGER)"
+    const addOrUpdateEntry = async (data: EntryData) => {
+        try {
+            const streak = await calculateStreak(data.date);
+            const params = {
+                $date: data.date.toISOString().slice(0, 10),
+                $title: data.title,
+                $duration: data.duration,
+                $rating: data.rating,
+                $description: data.desc,
+                $streak: streak,
+            };
+            const result = await db.runAsync(
+                `INSERT OR REPLACE INTO entries (date, title, duration, rating, description, streak)
+                 VALUES ($date, $title, $duration, $rating, $description, $streak)`,
+                params
             );
-            db.execAsync("PRAGMA journal_mode=WAL;");
-            await AsyncStorage.setItem("firstLaunch", "true");
-            return true;
+            return result.changes;
+        } catch (error) {
+            console.error("Failed to add or update entry:", error);
         }
-        return false;
-    } catch (e) {
-        return false;
-    }
+    };
+
+    const getEntryByDate = async (date: Date) => {
+        try {
+            const dateString = date.toISOString().slice(0, 10);
+            const row = await db.getFirstAsync(
+                "SELECT * FROM entries WHERE date = ?;",
+                [dateString]
+            );
+            return mapResToEntry(row);
+        } catch (error) {
+            console.error("Failed to get entry by date:", error);
+        }
+    };
+
+    const aggregateDifficulty = async (startDate: Date, endDate: Date) => {
+        try {
+            return await db.getAllAsync<{ date: string; rating: number }>(
+                "SELECT date, rating FROM entries WHERE date BETWEEN ? AND ? ORDER BY date ASC",
+                [
+                    startDate.toISOString().slice(0, 10),
+                    endDate.toISOString().slice(0, 10),
+                ]
+            );
+        } catch (error) {
+            console.error("Failed to aggregate difficulty:", error);
+            return [];
+        }
+    };
+
+    const aggregateDuration = async (startDate: Date, endDate: Date) => {
+        try {
+            return await db.getAllAsync<{ date: string; duration: number }>(
+                "SELECT date, duration FROM entries WHERE date BETWEEN ? AND ? ORDER BY date ASC",
+                [
+                    startDate.toISOString().slice(0, 10),
+                    endDate.toISOString().slice(0, 10),
+                ]
+            );
+        } catch (error) {
+            console.error("Failed to aggregate duration:", error);
+            return [];
+        }
+    };
+
+    const countTotalDays = async () => {
+        try {
+            const result = await db.getFirstAsync<{ days: number }>(
+                "SELECT COUNT(*) AS days FROM entries;"
+            );
+            return result || { days: 0 };
+        } catch (error) {
+            console.error("Failed to count days:", error);
+            return { days: 0 };
+        }
+    };
+
+    const getAll = async (): Promise<EntryData[]> => {
+        try {
+            const rows = await db.getAllAsync("SELECT * FROM entries;");
+            return rows.map((val) => mapResToEntry(val));
+        } catch (error) {
+            console.error("Failed to get entries:", error);
+        }
+        return new Promise((resolve) => []);
+    };
+
+    return {
+        getAll,
+        addOrUpdateEntry,
+        getEntryByDate,
+        aggregateDifficulty,
+        aggregateDuration,
+        countTotalDays,
+    };
 };
 
-const mapEntryToQuery = (entry: EntryData, streak: number) => ({
-    $date: entry.date.toISOString().slice(0, 10),
-    $title: entry.title,
-    $startTime: entry.durationFrom.toISOString().slice(12, 19),
-    $endTime: entry.durationTo.toISOString().slice(12, 19),
-    $duration: entry.durationTime,
-    $rating: entry.rating,
-    $description: entry.desc,
-    $streak: streak,
+export const mapResToEntry = (result: any): EntryData => ({
+    date: new Date(result.date),
+    title: result.title,
+    duration: result.duration,
+    rating: result.rating,
+    desc: result.description,
+    streak: result.streak,
 });
-
-const mapResToEntry = (result: any | null, timestamp: Date): EntryData => {
-    if (result === null) {
-        return {
-            date: timestamp,
-            title: "",
-            rating: 0,
-            desc: "",
-            durationFrom: timestamp,
-            durationTo: timestamp,
-            durationTime: 0,
-            submit: false,
-            submitAction: "add",
-        };
-    } else {
-        return {
-            date: new Date(result.date),
-            title: result.title,
-            durationTime: result.duration,
-            durationFrom: new Date(`${result.date}T${result.startTime}`),
-            durationTo: new Date(`${result.date}T${result.endTime}`),
-            rating: result.rating,
-            desc: result.description,
-            submitAction: "update",
-            submit: false,
-        };
-    }
-};
-
-async function setupCRUDService(database: string): Promise<{
-    db?: SQL.SQLiteDatabase;
-    retrieveStatement?: SQL.SQLiteStatement;
-    createStatement?: SQL.SQLiteStatement;
-    aggergateDiffStatement?: SQL.SQLiteStatement;
-    aggergateDurStatement?: SQL.SQLiteStatement;
-}> {
-    try {
-        const db = await SQL.openDatabaseAsync(database);
-        return {
-            db,
-            retrieveStatement: await db.prepareAsync(
-                "SELECT date, title, startTime, endTime, duration, rating, description FROM entries WHERE date = $startDate;"
-            ),
-            createStatement: await db.prepareAsync(
-                "INSERT OR REPLACE INTO entries (date, title, startTime, endTime, duration, rating, description, streak) VALUES ($date, $title, $startTime, $endTime, $duration, $rating, $description, $streak)"
-            ),
-            aggergateDiffStatement: await db.prepareAsync(
-                "SELECT date, rating from entries WHERE date BETWEEN $startdate AND $enddate"
-            ),
-            aggergateDurStatement: await db.prepareAsync(
-                "SELECT date, duration from entries WHERE date BETWEEN $startdate AND $enddate"
-            ),
-        };
-    } catch (error) {
-        console.error(error);
-        return {};
-    }
-}
-
-async function initializeCRUDService(database: string): Promise<CRUDService> {
-    const serviceSetup = await setupCRUDService(database);
-    if (
-        serviceSetup.db &&
-        serviceSetup.retrieveStatement &&
-        serviceSetup.createStatement &&
-        serviceSetup.aggergateDiffStatement &&
-        serviceSetup.aggergateDurStatement
-    ) {
-        return new CRUDInterface({
-            db: serviceSetup.db,
-            retrieveStatement: serviceSetup.retrieveStatement,
-            createStatement: serviceSetup.createStatement,
-            aggergateDiffStatement: serviceSetup.aggergateDiffStatement,
-            aggergateDurStatement: serviceSetup.aggergateDurStatement,
-        });
-    } else {
-        return null;
-    }
-}
-
-const ActiveCRUD = createContext<CRUDService>(null);
-
-function useCRUDService(): CRUDService {
-    return useContext(ActiveCRUD);
-}
-
-export {
-    useCRUDService,
-    CRUDService,
-    initializeCRUDService,
-    ActiveCRUD,
-    mapResToEntry,
-    firstTimeSetup,
-    readUser,
-    storeUser,
-    MusicianUser,
-};
