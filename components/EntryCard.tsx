@@ -1,7 +1,7 @@
 import { EntryData } from "@/hooks/useCRUD";
 import React from "react";
 import { View, StyleProp, ViewStyle } from "react-native";
-import { Card, Text, useTheme } from "react-native-paper";
+import { Card, Icon, Text, useTheme } from "react-native-paper";
 
 const unixIntToString = (unixMS: number) => {
     const m = Math.round(unixMS / 1000 / 60);
@@ -12,14 +12,14 @@ const unixIntToString = (unixMS: number) => {
 interface DisplayEntryProps {
     entryData: EntryData;
     selected?: boolean;
-    onPress: (date: Date) => void;
+    onPress?: (date: Date) => void;
     style?: StyleProp<ViewStyle>;
 }
 
 export const DisplayEntry = ({
     entryData,
     style,
-    onPress,
+    onPress = () => {},
     selected = false,
 }: DisplayEntryProps) => {
     const { colors } = useTheme();
@@ -85,7 +85,10 @@ export const DisplayEntry = ({
                                 dateStyle: "medium",
                             })
                             .concat(" • ")}
-                        {Array.from({ length: rating }, () => "s").join("")}
+
+                        {Array.from({ length: rating }, (v, k) => (
+                            <Icon key={k} size={11} source={"star"} />
+                        ))}
                         {rating > 0 && duration > 0 ? " • " : ""}
                         {duration > 0 ? unixIntToString(duration) : ""}
                     </Text>

@@ -14,13 +14,15 @@ const currentDay = new Date();
 export default function Practice() {
     const { colors } = useTheme();
     const [entries, setEntries] = useState<EntryData[]>([]);
-    const [selected, setSelected] = useState<Date | null>(null);
+    // const [selected, setSelected] = useState<Date | null>(null);
     const [vis, setVis] = useState(false);
     const db = useSQLiteContext();
     const { getAll, addOrUpdateEntry } = useEntryCRUD(db);
     useEffect(() => {
         (async () => {
-            setEntries(await getAll());
+            const rows = await getAll();
+            rows.reverse();
+            setEntries(rows);
         })();
     }, []);
 
@@ -64,16 +66,14 @@ export default function Practice() {
                 <FAB
                     color={colors.primary}
                     customSize={48}
-                    icon={selected ? "trash-can" : "plus"}
+                    // icon={selected ? "trash-can" : "plus"}
+                    icon={"plus"}
                     style={{
                         borderRadius: 240,
                         backgroundColor: colors.elevation.level1,
                     }}
                     onPress={() => {
-                        if (selected) {
-                        } else {
-                            setVis(true);
-                        }
+                        setVis(true);
                     }}
                 />
             </View>
@@ -98,10 +98,10 @@ export default function Practice() {
                     renderItem={({ item }) => (
                         <DisplayEntry
                             entryData={item}
-                            onPress={(date) => {
-                                setSelected(date === selected ? null : date);
-                            }}
-                            selected={selected === item.date}
+                            // onPress={(date) => {
+                            //     setSelected(date === selected ? null : date);
+                            // }}
+                            // selected={selected === item.date}
                         />
                     )}
                 />

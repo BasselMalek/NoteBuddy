@@ -12,11 +12,9 @@ export default function DurationPicker(props: {
     const [toModalVisible, setToModalVisible] = useState(false);
     const [fromTime, setFromTime] = useState(props.from);
     const [toTime, setToTime] = useState(new Date(props.from.getTime()));
-    const activeTheme = useTheme();
+    const { colors } = useTheme();
 
-    const borderColor = props.error
-        ? activeTheme.colors.error
-        : activeTheme.colors.outline;
+    const borderColor = props.error ? colors.error : colors.outline;
 
     return (
         <View
@@ -35,7 +33,7 @@ export default function DurationPicker(props: {
                     borderColor: borderColor,
                 }}
                 textStyle={{
-                    color: props.error ? activeTheme.colors.error : undefined,
+                    color: props.error ? colors.error : colors.onSurface,
                 }}
             >
                 {fromTime.toLocaleTimeString([], {
@@ -68,7 +66,7 @@ export default function DurationPicker(props: {
                     borderColor: borderColor,
                 }}
                 textStyle={{
-                    color: props.error ? activeTheme.colors.error : undefined,
+                    color: props.error ? colors.error : colors.onSurface,
                 }}
                 onPress={() => {
                     setToModalVisible(true);
