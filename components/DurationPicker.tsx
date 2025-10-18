@@ -1,20 +1,20 @@
 import { View } from "react-native";
-import { Chip, PaperProvider, Text, useTheme } from "react-native-paper";
+import { Chip, Text, useTheme } from "react-native-paper";
 import { useState } from "react";
-import { Platform } from "react-native";
 import { TimePickerModal } from "react-native-paper-dates";
 
-//TODO(3): add input validation {from<to}.
 export default function DurationPicker(props: {
-    fromValue: Date;
-    fromHandler: Function;
-    toValue: Date;
-    toHandler: Function;
+    from: Date;
+    setDuration: (time: number) => void;
     error?: boolean;
 }) {
     const [fromModalVisible, setFromModalVisible] = useState(false);
     const [toModalVisible, setToModalVisible] = useState(false);
-    const activeTheme = useTheme();
+    const [fromTime, setFromTime] = useState(props.from);
+    const [toTime, setToTime] = useState(new Date(props.from.getTime()));
+    const { colors } = useTheme();
+
+    const borderColor = props.error ? colors.error : colors.outline;
 
     return (
         <View
@@ -30,53 +30,63 @@ export default function DurationPicker(props: {
                     setFromModalVisible(true);
                 }}
                 style={{
-                    borderColor:
-                        props.error ?? false
-                            ? activeTheme.colors.error
-                            : activeTheme.colors.outline,
+                    borderColor: borderColor,
+                }}
+                textStyle={{
+                    color: props.error ? colors.error : colors.onSurface,
                 }}
             >
-                {props.fromValue.toLocaleTimeString([], {
+                {fromTime.toLocaleTimeString([], {
                     timeStyle: "short",
                 })}
             </Chip>
+
             <TimePickerModal
                 visible={fromModalVisible}
                 onConfirm={({ hours, minutes }) => {
-                    const date = new Date();
-                    date.setHours(hours, minutes);
-                    props.fromHandler(date);
+                    const newFrom = new Date(fromTime);
+                    newFrom.setHours(hours, minutes);
+                    setFromTime(newFrom);
+
+                    const newDuration = toTime.getTime() - newFrom.getTime();
+                    props.setDuration(newDuration);
+
                     setFromModalVisible(false);
                 }}
                 onDismiss={() => {
                     setFromModalVisible(false);
                 }}
             />
-            <Text style={{ textAlignVertical: "center", fontSize: 24 }}>
-                {"->"}
-            </Text>
+
+            <Text style={{ textAlignVertical: "center" }}>{":"}</Text>
+
             <Chip
                 mode="outlined"
                 style={{
-                    borderColor:
-                        props.error ?? false
-                            ? activeTheme.colors.error
-                            : activeTheme.colors.outline,
+                    borderColor: borderColor,
+                }}
+                textStyle={{
+                    color: props.error ? colors.error : colors.onSurface,
                 }}
                 onPress={() => {
                     setToModalVisible(true);
                 }}
             >
-                {props.toValue.toLocaleTimeString([], {
+                {toTime.toLocaleTimeString([], {
                     timeStyle: "short",
                 })}
             </Chip>
+
             <TimePickerModal
                 visible={toModalVisible}
                 onConfirm={({ hours, minutes }) => {
-                    const date = new Date();
-                    date.setHours(hours, minutes);
-                    props.toHandler(date);
+                    const newTo = new Date(toTime);
+                    newTo.setHours(hours, minutes);
+                    setToTime(newTo);
+
+                    const newDuration = newTo.getTime() - fromTime.getTime();
+                    props.setDuration(newDuration);
+
                     setToModalVisible(false);
                 }}
                 onDismiss={() => {

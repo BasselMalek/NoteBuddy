@@ -1,69 +1,36 @@
-import { View, StyleSheet } from "react-native";
-import {
-    Card,
-    Text as PaperText,
-    PaperProvider,
-    Button,
-    useTheme,
-    IconButton,
-} from "react-native-paper";
-import { Entry, EntryData } from "@/components/Entry";
-import React, { useEffect, useState, Suspense } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { mapResToEntry, useCRUDService } from "@/hooks/useCRUD";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View } from "react-native";
+import { Text, useTheme, FAB, Button, TextInput } from "react-native-paper";
+import { FlashList } from "@shopify/flash-list";
+import { DisplayEntry } from "@/components/EntryCard";
+import React, { useEffect, useState } from "react";
+import { EntryData, useEntryCRUD } from "@/hooks/useCRUD";
+import { useSQLiteContext } from "expo-sqlite";
+import Modal from "react-native-modal";
+import RatingSelector from "@/components/RatingSelector";
+import DurationPicker from "@/components/DurationPicker";
 
 const currentDay = new Date();
 
 export default function Practice() {
-    const safeInsets = useSafeAreaInsets();
-    const { colors, roundness } = useTheme();
-    const LiveCRUD = useCRUDService();
-    const [selectedDate, setSelectedDate] = useState(currentDay);
-    const [reloadFlag, setReloadFlag] = useState(false);
-    const [active, setActive] = useState(false);
-    const [loadedEntry, setLoadedEntry] = useState<EntryData>({
-        date: currentDay,
-        title: "",
-        rating: 0,
-        desc: "",
-        durationFrom: new Date(),
-        durationTo: new Date(),
-        durationTime: 0,
-        submit: false,
-        submitAction: "add",
-    });
-
-    const queryClient = useQueryClient();
-    const entryMutator = useMutation(
-        {
-            mutationFn: (entry: EntryData) => LiveCRUD!.mutateRecord(entry),
-        },
-        queryClient
-    );
-
+    const { colors } = useTheme();
+    const [entries, setEntries] = useState<EntryData[]>([]);
+    // const [selected, setSelected] = useState<Date | null>(null);
+    const [vis, setVis] = useState(false);
+    const db = useSQLiteContext();
+    const { getAll, addOrUpdateEntry } = useEntryCRUD(db);
     useEffect(() => {
-        if (LiveCRUD != null) {
-            (async () => {
-                const data = await queryClient.fetchQuery({
-                    queryKey: ["entry", selectedDate],
-                    queryFn: () =>
-                        LiveCRUD!.queryRecord(
-                            selectedDate.toISOString().slice(0, 10)
-                        ),
-                });
-                setLoadedEntry(mapResToEntry(data, selectedDate));
-                setReloadFlag(false);
-            })();
-        }
-        return () => {};
-    }, [selectedDate, LiveCRUD, reloadFlag]);
+        (async () => {
+            const rows = await getAll();
+            rows.reverse();
+            setEntries(rows);
+        })();
+    }, []);
 
     return (
         <View
             style={{
                 flex: 1,
-                gap: 10,
+                flexDirection: "column-reverse",
             }}
         >
             <View
@@ -71,109 +38,216 @@ export default function Practice() {
                     flexDirection: "row",
                     justifyContent: "center",
                     alignItems: "center",
-                    paddingHorizontal: 20,
-                    columnGap: 10,
-                    height: 50,
+                    gap: 10,
+                    padding: 10,
                 }}
             >
-                <IconButton
-                    disabled={active}
-                    icon={"chevron-left"}
-                    iconColor={colors.primary}
-                    containerColor={colors.elevation.level5}
+                <Button
+                    icon={"calendar"}
+                    mode="elevated"
+                    elevation={5}
                     style={{
-                        borderRadius: 12,
-                        width: 50,
-                        height: 45,
-                    }}
-                    mode="contained"
-                    onPress={() => {
-                        setSelectedDate(
-                            new Date(
-                                selectedDate.getTime() - 1 * 24 * 3600 * 1000
-                            )
-                        );
-                    }}
-                />
-                <View
-                    style={{
-                        backgroundColor: colors.elevation.level1,
-                        elevation: 5,
-                        borderRadius: 12,
-                        padding: 15,
+                        borderRadius: 24,
+                        height: 50,
                         justifyContent: "center",
-                        alignContent: "center",
+                        alignItems: "center",
                     }}
                 >
-                    <PaperText
-                        style={{
-                            textAlign: "center",
-                        }}
-                    >
-                        {selectedDate.toDateString()}
-                    </PaperText>
-                </View>
-                <IconButton
-                    icon={"chevron-right"}
-                    containerColor={colors.elevation.level5}
-                    disabled={
-                        selectedDate.toDateString() ===
-                            currentDay.toDateString() || active
-                    }
-                    style={{
-                        borderRadius: 12,
-                        width: 50,
-                        height: 45,
+                    {currentDay.toDateString()}
+                </Button>
+                <AddModal
+                    setVis={setVis}
+                    modalVisible={vis}
+                    handleSave={(data) => {
+                        setEntries([...entries, data]);
+                        addOrUpdateEntry(data);
                     }}
-                    mode="contained"
+                />
+                <FAB
+                    color={colors.primary}
+                    customSize={48}
+                    // icon={selected ? "trash-can" : "plus"}
+                    icon={"plus"}
+                    style={{
+                        borderRadius: 240,
+                        backgroundColor: colors.elevation.level1,
+                    }}
                     onPress={() => {
-                        setSelectedDate(
-                            new Date(
-                                selectedDate.getTime() + 1 * 24 * 3600 * 1000
-                            )
-                        );
+                        setVis(true);
                     }}
                 />
             </View>
-            <Card style={styles.expandedCard}>
-                <Card.Content>
-                    <Entry
-                        setEditing={(isEditing: boolean) => {
-                            setActive(isEditing);
-                        }}
-                        entryData={loadedEntry!}
-                        onEntryChangeHandler={(editedEntry: EntryData) => {
-                            entryMutator.mutate(editedEntry, {
-                                onSuccess: async (data) => {
-                                    if (data === 1) {
-                                        setReloadFlag(true);
-                                    }
-                                },
-                                onError: (error) => {
-                                    console.error(error);
-                                },
-                            });
-                        }}
-                    />
-                </Card.Content>
-            </Card>
+            <View
+                style={{
+                    flex: 1,
+                }}
+            >
+                <FlashList
+                    fadingEdgeLength={{ start: 40, end: 3 }}
+                    maintainVisibleContentPosition={{
+                        animateAutoScrollToBottom: true,
+                        startRenderingFromBottom: true,
+                        autoscrollToBottomThreshold: 10,
+                    }}
+                    ItemSeparatorComponent={() => (
+                        <View style={{ height: 10 }} />
+                    )}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 10 }}
+                    data={entries}
+                    renderItem={({ item }) => (
+                        <DisplayEntry
+                            entryData={item}
+                            // onPress={(date) => {
+                            //     setSelected(date === selected ? null : date);
+                            // }}
+                            // selected={selected === item.date}
+                        />
+                    )}
+                />
+            </View>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    calendarCard: {
-        display: "flex",
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        flex: 1,
-        marginBottom: 5,
-    },
-    expandedCard: {
-        display: "flex",
-        flex: 3,
-        paddingHorizontal: 10,
-        paddingVertical: 10,
-        fontSize: 34,
-    },
-});
+const AddModal = (props: {
+    setVis: (bool: boolean) => void;
+    modalVisible: boolean;
+    handleSave: (data: EntryData) => void;
+}) => {
+    const [title, setTitle] = useState("");
+    const [desc, setDesc] = useState("");
+    const [rating, setRating] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const [titleError, setTitleError] = useState(false);
+    const [ratingError, setRatingError] = useState(false);
+    const [durationError, setDurationError] = useState(false);
+    const { colors, roundness } = useTheme();
+    const { setVis, modalVisible, handleSave } = props;
+    const [canSave, setCanSave] = useState(
+        title.trim() !== "" && rating > 0 && duration > 59000
+    );
+
+    useEffect(() => {
+        setCanSave(title.trim() !== "" && rating > 0 && duration > 59000);
+    }, [title, duration, rating]);
+
+    const handleSavePress = () => {
+        const isTitleValid = title.trim() !== "";
+        const isRatingValid = rating > 0;
+        const isDurationValid = duration > 0;
+
+        setTitleError(!isTitleValid);
+        setRatingError(!isRatingValid);
+        setDurationError(!isDurationValid);
+
+        if (isTitleValid && isRatingValid && isDurationValid) {
+            const entryData: EntryData = {
+                date: new Date(),
+                title: title.trim(),
+                desc: desc.trim(),
+                rating,
+                duration,
+                streak: 0,
+            };
+            handleSave(entryData);
+            setTitle("");
+            setDesc("");
+            setRating(0);
+            setDuration(0);
+            setTitleError(false);
+            setRatingError(false);
+            setDurationError(false);
+            setVis(false);
+        }
+    };
+
+    return (
+        <Modal
+            useNativeDriver={false}
+            useNativeDriverForBackdrop={false}
+            onBackdropPress={() => setVis(false)}
+            onBackButtonPress={() => setVis(false)}
+            isVisible={modalVisible}
+            style={{
+                flex: 1,
+                justifyContent: "flex-end",
+                marginHorizontal: 0,
+                marginBottom: 0,
+            }}
+        >
+            <View
+                style={{
+                    flex: 1,
+                    maxHeight: "60%",
+                    backgroundColor: colors.background,
+                    borderTopLeftRadius: roundness + 10,
+                    borderTopRightRadius: roundness + 10,
+                    padding: 20,
+                    gap: 10,
+                }}
+            >
+                <View
+                    style={{
+                        width: 40,
+                        height: 4,
+                        backgroundColor: colors.outline,
+                        borderRadius: 2,
+                        alignSelf: "center",
+                        marginBottom: 10,
+                    }}
+                />
+                <TextInput
+                    label="Title"
+                    value={title}
+                    onChangeText={(text) => {
+                        setTitle(text);
+                        if (titleError) setTitleError(false);
+                    }}
+                    error={titleError}
+                    mode="outlined"
+                />
+                <View>
+                    <Text variant="labelLarge">{"Rating"}</Text>
+                    <RatingSelector
+                        ratingState={rating}
+                        ratingHandler={(rating) => {
+                            setRatingError(false);
+                            setRating(rating);
+                        }}
+                        error={ratingError}
+                    />
+                </View>
+
+                <View>
+                    <Text variant="labelLarge" style={{ marginBottom: 10 }}>
+                        {"Duration"}
+                    </Text>
+                    <DurationPicker
+                        from={new Date()}
+                        setDuration={(ms: number) => {
+                            setDuration(ms);
+                            if (durationError) setDurationError(false);
+                        }}
+                        error={durationError}
+                    />
+                </View>
+                <TextInput
+                    label="Description"
+                    value={desc}
+                    onChangeText={setDesc}
+                    mode="outlined"
+                    multiline
+                    style={{ flex: 1 }}
+                />
+                <Button
+                    mode="contained"
+                    onPress={handleSavePress}
+                    // disabled={!canSave}59000                    style={{ marginTop: 10 }}
+                >
+                    {"Save"}
+                </Button>
+            </View>
+        </Modal>
+    );
+};
