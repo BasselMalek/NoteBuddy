@@ -2,7 +2,6 @@ import { AudioContext } from "react-native-audio-api";
 import { useSharedValue } from "react-native-reanimated";
 import { useRef, useState, useCallback, useLayoutEffect } from "react";
 import { Asset } from "expo-asset";
-
 const CLICK_DURATION = 17;
 
 type BeatType = "downbeat" | "upbeat";
@@ -90,7 +89,10 @@ export default function useMetronomePlayer(options: PlayerOptions) {
 
         function advancePattern() {
             const beatType: BeatType =
-                currentBeat.value === 0 ? "downbeat" : "upbeat";
+                currentBeat.value === numBeatsRef.current - 1
+                    ? // currentBeat.value === 0
+                      "downbeat"
+                    : "upbeat";
             playingBeat.value = getPlayingBeat(beatType);
             playNote.current!(beatType, nextNoteTime);
 
