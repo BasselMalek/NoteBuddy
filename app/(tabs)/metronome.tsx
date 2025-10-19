@@ -12,19 +12,6 @@ export default function Metronome() {
     const { colors } = useTheme();
     const activeLongPressInterval = useRef<any>(null);
     const [isPlayingOverall, setIsPlayingOverall] = useState(false);
-
-    useFocusEffect(
-        useCallback(() => {
-            () => {
-                return () => {
-                    stop();
-                    setIsPlayingOverall(false);
-                    deactivateKeepAwake();
-                };
-            };
-        }, [])
-    );
-
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
             if (state + action > 0 && state + action < 241) {
@@ -52,7 +39,6 @@ export default function Metronome() {
         },
         2
     );
-
     const { isPlaying, play, stop, load, currentBeat } = useMetronomePlayer({
         bpm: currentBpm,
         numBeats: beatsPerBar,
@@ -64,17 +50,26 @@ export default function Metronome() {
         }
     }, [load]);
 
-    const toggleMetronome = () => {
-        if (isPlaying) {
-            stop();
-            setIsPlayingOverall(false);
-            deactivateKeepAwake();
-        } else {
-            play();
-            setIsPlayingOverall(true);
-            activateKeepAwakeAsync();
-        }
-    };
+    const toggleMetronome = useCallback(
+        (enable: boolean) => {
+            if (enable) {
+                play();
+                setIsPlayingOverall(true);
+                activateKeepAwakeAsync();
+            } else {
+                stop();
+                setIsPlayingOverall(false);
+                deactivateKeepAwake();
+            }
+        },
+        [stop, play]
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => toggleMetronome(false);
+        }, [])
+    );
 
     return (
         <View
@@ -96,7 +91,7 @@ export default function Metronome() {
 
             <View style={style.controlSection}>
                 <Text variant="labelLarge" style={style.label}>
-                    BPM
+                    {"BPM"}
                 </Text>
                 <View style={style.controlRow}>
                     <IconButton
@@ -106,9 +101,11 @@ export default function Metronome() {
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
                         onPress={() => {
+                            toggleMetronome(false);
                             setCurrentBpm(-10);
                         }}
                         onLongPress={() => {
+                            toggleMetronome(false);
                             activeLongPressInterval.current = setInterval(
                                 () => {
                                     setCurrentBpm(-10);
@@ -127,9 +124,11 @@ export default function Metronome() {
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
                         onPress={() => {
+                            toggleMetronome(false);
                             setCurrentBpm(-1);
                         }}
                         onLongPress={() => {
+                            toggleMetronome(false);
                             activeLongPressInterval.current = setInterval(
                                 () => {
                                     setCurrentBpm(-1);
@@ -163,9 +162,11 @@ export default function Metronome() {
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
                         onPress={() => {
+                            toggleMetronome(false);
                             setCurrentBpm(1);
                         }}
                         onLongPress={() => {
+                            toggleMetronome(false);
                             activeLongPressInterval.current = setInterval(
                                 () => {
                                     setCurrentBpm(1);
@@ -184,9 +185,11 @@ export default function Metronome() {
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
                         onPress={() => {
+                            toggleMetronome(false);
                             setCurrentBpm(10);
                         }}
                         onLongPress={() => {
+                            toggleMetronome(false);
                             activeLongPressInterval.current = setInterval(
                                 () => {
                                     setCurrentBpm(10);
@@ -203,7 +206,7 @@ export default function Metronome() {
 
             <View style={style.controlSection}>
                 <Text variant="labelLarge" style={style.label}>
-                    Beats Per Bar
+                    {"Beats Per Bar"}
                 </Text>
                 <View style={style.controlRow}>
                     <IconButton
@@ -214,6 +217,7 @@ export default function Metronome() {
                         style={style.iconButton}
                         disabled={beatsPerBar === 2}
                         onPress={() => {
+                            toggleMetronome(false);
                             setBeatsPerBar(-1);
                         }}
                     />
@@ -240,6 +244,7 @@ export default function Metronome() {
                         style={style.iconButton}
                         disabled={beatsPerBar === 9}
                         onPress={() => {
+                            toggleMetronome(false);
                             setBeatsPerBar(1);
                         }}
                     />
@@ -250,7 +255,7 @@ export default function Metronome() {
                 icon={isPlaying ? "pause" : "play"}
                 mode="elevated"
                 style={style.fab}
-                onPress={toggleMetronome}
+                onPress={() => toggleMetronome(!isPlaying)}
             />
         </View>
     );
