@@ -27,3 +27,6 @@ ios/
 
 #vscode
 .vscode
+
+
+*.apk
