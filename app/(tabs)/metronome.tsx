@@ -1,38 +1,19 @@
 import { View, StyleSheet } from "react-native";
-import {
-    Text as PaperText,
-    Button as PaperButton,
-    FAB,
-    useTheme,
-} from "react-native-paper";
-import { useState, useRef, useReducer } from "react";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Ticker } from "@/components/NewTicker";
-import MetronomeModule from "react-native-metronome-module";
+import { Text, IconButton, FAB, useTheme } from "react-native-paper";
+import { useState, useRef, useReducer, useEffect, useCallback } from "react";
+import { Pendulum } from "@/components/Pendulum";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import useMetronomePlayer from "@/hooks/useMetronomePlayer";
+import { useFocusEffect } from "expo-router";
 
 export default function Metronome() {
     const safeInsets = useSafeAreaInsets();
-    const activeTheme = useTheme();
-    const activeLongPressInterval = useRef<NodeJS.Timeout>();
-    const [isMetronomePlaying, setIsMetronomePlaying] = useState(false);
-    MetronomeModule.setShouldPauseOnLostFocus(true);
-    const globalStart = () => {
-        MetronomeModule.setBPM(currentBpm);
-        setIsMetronomePlaying(true);
-        MetronomeModule.start();
-        activateKeepAwakeAsync();
-    };
-    const globalEnd = () => {
-        MetronomeModule.stop();
-        setIsMetronomePlaying(false);
-        deactivateKeepAwake();
-    };
-
+    const { colors } = useTheme();
+    const activeLongPressInterval = useRef<any>(null);
+    const [isPlayingOverall, setIsPlayingOverall] = useState(false);
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
-            globalEnd();
             if (state + action > 0 && state + action < 241) {
                 state += action;
             } else if (state + action <= 0) {
@@ -42,48 +23,89 @@ export default function Metronome() {
             }
             return state;
         },
-        120
+        90
+    );
+
+    const [beatsPerBar, setBeatsPerBar] = useReducer(
+        (state: number, action: number) => {
+            const newValue = state + action;
+            if (newValue >= 2 && newValue <= 9) {
+                return newValue;
+            } else if (newValue < 2) {
+                return 2;
+            } else {
+                return 9;
+            }
+        },
+        2
+    );
+    const { isPlaying, play, stop, load, currentBeat } = useMetronomePlayer({
+        bpm: currentBpm,
+        numBeats: beatsPerBar,
+    });
+
+    useEffect(() => {
+        if (load) {
+            load();
+        }
+    }, [load]);
+
+    const toggleMetronome = useCallback(
+        (enable: boolean) => {
+            if (enable) {
+                play();
+                setIsPlayingOverall(true);
+                activateKeepAwakeAsync();
+            } else {
+                stop();
+                setIsPlayingOverall(false);
+                deactivateKeepAwake();
+            }
+        },
+        [stop, play]
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => toggleMetronome(false);
+        }, [])
     );
 
     return (
         <View
             style={{
                 flex: 1,
-                paddingTop: safeInsets.top + 5,
-                paddingBottom: safeInsets.bottom,
-                paddingRight: safeInsets.right,
-                paddingLeft: safeInsets.left,
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 24,
             }}
         >
-            <View style={style.rootContainer}>
-                <Ticker
-                    bpm={currentBpm}
-                    metronomeStatus={isMetronomePlaying}
-                    sourceColor={activeTheme.colors.surfaceVariant}
-                    targetColor={activeTheme.colors.tertiary}
-                ></Ticker>
-                <View
-                    style={{
-                        margin: 20,
-                        flexDirection: "row",
-                        alignSelf: "center",
-                        justifyContent: "center",
-                        paddingHorizontal: 20,
-                        gap: 10,
-                    }}
-                >
-                    <PaperButton
-                        compact
-                        style={{
-                            borderRadius: 12,
-                            width: 50,
-                        }}
-                        elevation={5}
-                        mode="elevated"
+            <Pendulum
+                bpm={currentBpm}
+                progress={currentBeat}
+                signature={beatsPerBar}
+                metronomeStatus={isPlayingOverall}
+                sourceColor={colors.surfaceVariant}
+                targetColor={colors.primary}
+            />
+
+            <View style={style.controlSection}>
+                <Text variant="labelLarge" style={style.label}>
+                    {"BPM"}
+                </Text>
+                <View style={style.controlRow}>
+                    <IconButton
+                        icon="minus-thick"
+                        mode="contained"
+                        size={14}
+                        containerColor={colors.elevation.level1}
+                        style={style.iconButton}
                         onPress={() => {
-                            setCurrentBpm(-1);
+                            toggleMetronome(false);
+                            setCurrentBpm(-10);
                         }}
                         onLongPress={() => {
+                            toggleMetronome(false);
                             activeLongPressInterval.current = setInterval(
                                 () => {
                                     setCurrentBpm(-10);
@@ -94,13 +116,34 @@ export default function Metronome() {
                         onPressOut={() => {
                             clearInterval(activeLongPressInterval.current);
                         }}
-                    >
-                        <MaterialCommunityIcons name="minus"></MaterialCommunityIcons>
-                    </PaperButton>
+                    />
+                    <IconButton
+                        icon="minus"
+                        mode="contained"
+                        size={14}
+                        containerColor={colors.elevation.level1}
+                        style={style.iconButton}
+                        onPress={() => {
+                            toggleMetronome(false);
+                            setCurrentBpm(-1);
+                        }}
+                        onLongPress={() => {
+                            toggleMetronome(false);
+                            activeLongPressInterval.current = setInterval(
+                                () => {
+                                    setCurrentBpm(-1);
+                                },
+                                75
+                            );
+                        }}
+                        onPressOut={() => {
+                            clearInterval(activeLongPressInterval.current);
+                        }}
+                    />
+
                     <View
                         style={{
-                            backgroundColor:
-                                activeTheme.colors.elevation.level1,
+                            backgroundColor: colors.elevation.level1,
                             elevation: 5,
                             borderRadius: 12,
                             paddingVertical: 10,
@@ -109,26 +152,44 @@ export default function Metronome() {
                             alignContent: "center",
                         }}
                     >
-                        <PaperText
-                            style={{
-                                textAlign: "center",
-                            }}
-                        >
-                            {currentBpm}
-                        </PaperText>
+                        <Text style={style.valueText}>{currentBpm}</Text>
                     </View>
-                    <PaperButton
-                        compact
-                        elevation={5}
-                        style={{
-                            borderRadius: 12,
-                            width: 50,
-                        }}
-                        mode="elevated"
+
+                    <IconButton
+                        icon="plus"
+                        mode="contained"
+                        size={14}
+                        containerColor={colors.elevation.level1}
+                        style={style.iconButton}
                         onPress={() => {
+                            toggleMetronome(false);
                             setCurrentBpm(1);
                         }}
                         onLongPress={() => {
+                            toggleMetronome(false);
+                            activeLongPressInterval.current = setInterval(
+                                () => {
+                                    setCurrentBpm(1);
+                                },
+                                75
+                            );
+                        }}
+                        onPressOut={() => {
+                            clearInterval(activeLongPressInterval.current);
+                        }}
+                    />
+                    <IconButton
+                        icon="plus-thick"
+                        mode="contained"
+                        size={14}
+                        containerColor={colors.elevation.level1}
+                        style={style.iconButton}
+                        onPress={() => {
+                            toggleMetronome(false);
+                            setCurrentBpm(10);
+                        }}
+                        onLongPress={() => {
+                            toggleMetronome(false);
                             activeLongPressInterval.current = setInterval(
                                 () => {
                                     setCurrentBpm(10);
@@ -139,36 +200,99 @@ export default function Metronome() {
                         onPressOut={() => {
                             clearInterval(activeLongPressInterval.current);
                         }}
-                    >
-                        <MaterialCommunityIcons name="plus"></MaterialCommunityIcons>
-                    </PaperButton>
+                    />
                 </View>
-                <FAB
-                    icon={isMetronomePlaying ? "pause" : "play"}
-                    mode="elevated"
-                    style={{
-                        marginRight: 0,
-                        alignSelf: "center",
-                        marginBottom: 15,
-                    }}
-                    onPress={async () => {
-                        if (isMetronomePlaying) {
-                            globalEnd();
-                        } else {
-                            globalStart();
-                        }
-                    }}
-                />
             </View>
+
+            <View style={style.controlSection}>
+                <Text variant="labelLarge" style={style.label}>
+                    {"Beats Per Bar"}
+                </Text>
+                <View style={style.controlRow}>
+                    <IconButton
+                        icon="minus"
+                        mode="contained"
+                        size={14}
+                        containerColor={colors.elevation.level1}
+                        style={style.iconButton}
+                        disabled={beatsPerBar === 2}
+                        onPress={() => {
+                            toggleMetronome(false);
+                            setBeatsPerBar(-1);
+                        }}
+                    />
+
+                    <View
+                        style={{
+                            backgroundColor: colors.elevation.level1,
+                            elevation: 5,
+                            borderRadius: 12,
+                            paddingVertical: 10,
+                            paddingHorizontal: 25,
+                            justifyContent: "center",
+                            alignContent: "center",
+                        }}
+                    >
+                        <Text style={style.valueText}>{beatsPerBar}</Text>
+                    </View>
+
+                    <IconButton
+                        icon="plus"
+                        mode="contained"
+                        size={14}
+                        containerColor={colors.elevation.level1}
+                        style={style.iconButton}
+                        disabled={beatsPerBar === 9}
+                        onPress={() => {
+                            toggleMetronome(false);
+                            setBeatsPerBar(1);
+                        }}
+                    />
+                </View>
+            </View>
+
+            <FAB
+                icon={isPlaying ? "pause" : "play"}
+                mode="elevated"
+                style={style.fab}
+                onPress={() => toggleMetronome(!isPlaying)}
+            />
         </View>
     );
 }
 
 const style = StyleSheet.create({
-    rootContainer: {
-        flex: 1,
-        padding: 7,
-        justifyContent: "center",
+    controlSection: {
         alignItems: "center",
+        gap: 12,
+    },
+    label: {
+        opacity: 0.7,
+    },
+    controlRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+    },
+    iconButton: {
+        width: 50,
+        height: "auto",
+        borderRadius: 12,
+        margin: 0,
+    },
+    valueDisplay: {
+        elevation: 5,
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 25,
+        justifyContent: "center",
+        alignContent: "center",
+    },
+    valueText: {
+        textAlign: "center",
+    },
+    fab: {
+        marginTop: 8,
     },
 });
