@@ -33,7 +33,7 @@ const loadSoundBuffers = async (audioContext: AudioContext) => {
                 if (!asset.localUri) {
                     throw new Error("Failed to load audio asset");
                 }
-                return audioContext.decodeAudioDataSource(asset.localUri);
+                return audioContext.decodeAudioData(asset.localUri);
             });
         const upBuffer = await Asset.fromModule(
             require("@/assets/sounds/Perc_MetronomeQuartz_lo.wav")
@@ -43,7 +43,7 @@ const loadSoundBuffers = async (audioContext: AudioContext) => {
                 if (!asset.localUri) {
                     throw new Error("Failed to load audio asset");
                 }
-                return audioContext.decodeAudioDataSource(asset.localUri);
+                return audioContext.decodeAudioData(asset.localUri);
             });
 
         console.log(`Audio files loaded`);

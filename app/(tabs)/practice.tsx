@@ -94,7 +94,7 @@ export default function Practice() {
                     )}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 10 }}
-                    data={entries}
+                    data={entries.reverse()}
                     renderItem={({ item }) => (
                         <DisplayEntry
                             entryData={item}
