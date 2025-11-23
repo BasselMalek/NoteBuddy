@@ -43,6 +43,7 @@ export const DisplayEntry = ({
         >
             <Card.Content>
                 <Text
+                    numberOfLines={5}
                     style={{
                         fontSize: 16,
                         lineHeight: 24,
@@ -61,10 +62,12 @@ export const DisplayEntry = ({
                     }}
                 >
                     <Text
+                        numberOfLines={1}
                         variant="labelLarge"
                         style={{
                             fontWeight: "bold",
                             color: colors.onSurface,
+                            maxWidth: "45%",
                             // textAlign: "left",
                             // textAlignVertical: "bottom",
                         }}
@@ -85,12 +88,10 @@ export const DisplayEntry = ({
                                 dateStyle: "medium",
                             })
                             .concat(" • ")}
-
+                        {unixIntToString(duration) + " • "}
                         {Array.from({ length: rating }, (v, k) => (
                             <Icon key={k} size={11} source={"star"} />
                         ))}
-                        {rating > 0 && duration > 0 ? " • " : ""}
-                        {duration > 0 ? unixIntToString(duration) : ""}
                     </Text>
                 </View>
             </Card.Content>

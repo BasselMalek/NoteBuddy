@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { KeyboardAvoidingView, View } from "react-native";
 import { Text, useTheme, FAB, Button, TextInput } from "react-native-paper";
 import { FlashList } from "@shopify/flash-list";
 import { DisplayEntry } from "@/components/EntryCard";
@@ -14,7 +14,7 @@ const currentDay = new Date();
 export default function Practice() {
     const { colors } = useTheme();
     const [entries, setEntries] = useState<EntryData[]>([]);
-    // const [selected, setSelected] = useState<Date | null>(null);
+    const [canAdd, setCanAdd] = useState(false);
     const [vis, setVis] = useState(false);
     const db = useSQLiteContext();
     const { getAll, addOrUpdateEntry } = useEntryCRUD(db);
@@ -25,6 +25,12 @@ export default function Practice() {
             setEntries(rows);
         })();
     }, []);
+
+    useEffect(() => {
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        setCanAdd(!entries.flatMap((v) => v.date).includes(today));
+    }, [entries]);
 
     return (
         <View
@@ -45,10 +51,13 @@ export default function Practice() {
                 <Button
                     icon={"calendar"}
                     mode="elevated"
+                    compact
                     elevation={5}
-                    style={{
+                    contentStyle={{
+                        // elevation: 5,
                         borderRadius: 24,
                         height: 50,
+                        paddingHorizontal: 10,
                         justifyContent: "center",
                         alignItems: "center",
                     }}
@@ -66,8 +75,8 @@ export default function Practice() {
                 <FAB
                     color={colors.primary}
                     customSize={48}
-                    // icon={selected ? "trash-can" : "plus"}
                     icon={"plus"}
+                    disabled={canAdd}
                     style={{
                         borderRadius: 240,
                         backgroundColor: colors.elevation.level1,
@@ -124,26 +133,19 @@ const AddModal = (props: {
     const [durationError, setDurationError] = useState(false);
     const { colors, roundness } = useTheme();
     const { setVis, modalVisible, handleSave } = props;
-    const [canSave, setCanSave] = useState(
-        title.trim() !== "" && rating > 0 && duration > 59000
-    );
-
-    useEffect(() => {
-        setCanSave(title.trim() !== "" && rating > 0 && duration > 59000);
-    }, [title, duration, rating]);
 
     const handleSavePress = () => {
         const isTitleValid = title.trim() !== "";
         const isRatingValid = rating > 0;
         const isDurationValid = duration > 0;
-
         setTitleError(!isTitleValid);
         setRatingError(!isRatingValid);
         setDurationError(!isDurationValid);
-
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
         if (isTitleValid && isRatingValid && isDurationValid) {
             const entryData: EntryData = {
-                date: new Date(),
+                date: today,
                 title: title.trim(),
                 desc: desc.trim(),
                 rating,
@@ -171,23 +173,23 @@ const AddModal = (props: {
             isVisible={modalVisible}
             style={{
                 flex: 1,
-                justifyContent: "flex-end",
-                marginHorizontal: 0,
-                marginBottom: 0,
+                // justifyContent: "flex-end",
+                // marginHorizontal: 0,
+                // marginBottom: 0,
             }}
         >
-            <View
+            <KeyboardAvoidingView
+                behavior="padding"
+                keyboardVerticalOffset={75}
                 style={{
-                    flex: 1,
-                    maxHeight: "60%",
                     backgroundColor: colors.background,
-                    borderTopLeftRadius: roundness + 10,
-                    borderTopRightRadius: roundness + 10,
+                    borderRadius: roundness + 10,
                     padding: 20,
+                    paddingBottom: 0,
                     gap: 10,
                 }}
             >
-                <View
+                {/* <View
                     style={{
                         width: 40,
                         height: 4,
@@ -196,7 +198,7 @@ const AddModal = (props: {
                         alignSelf: "center",
                         marginBottom: 10,
                     }}
-                />
+                /> */}
                 <TextInput
                     label="Title"
                     value={title}
@@ -218,7 +220,6 @@ const AddModal = (props: {
                         error={ratingError}
                     />
                 </View>
-
                 <View>
                     <Text variant="labelLarge" style={{ marginBottom: 10 }}>
                         {"Duration"}
@@ -238,16 +239,17 @@ const AddModal = (props: {
                     onChangeText={setDesc}
                     mode="outlined"
                     multiline
-                    style={{ flex: 1 }}
+                    numberOfLines={5}
+                    style={{ minHeight: "20%" }}
                 />
                 <Button
                     mode="contained"
                     onPress={handleSavePress}
-                    // disabled={!canSave}59000                    style={{ marginTop: 10 }}
+                    style={{ marginBottom: 20 }}
                 >
                     {"Save"}
                 </Button>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };
