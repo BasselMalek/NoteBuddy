@@ -21,7 +21,6 @@ export default function Practice() {
     useEffect(() => {
         (async () => {
             const rows = await getAll();
-            rows.reverse();
             setEntries(rows);
         })();
     }, []);
@@ -29,7 +28,9 @@ export default function Practice() {
     useEffect(() => {
         const today = new Date();
         today.setHours(12, 0, 0, 0);
-        setCanAdd(!entries.flatMap((v) => v.date).includes(today));
+        setCanAdd(
+            entries.flatMap((v) => v.date.getTime()).includes(today.getTime())
+        );
     }, [entries]);
 
     return (

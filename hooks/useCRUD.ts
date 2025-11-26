@@ -31,7 +31,7 @@ export const useEntryCRUD = (db: SQL.SQLiteDatabase) => {
         try {
             const streak = await calculateStreak(data.date);
             const params = {
-                $date: data.date.toISOString().slice(0, 10),
+                $date: data.date.toISOString(),
                 $title: data.title,
                 $duration: data.duration,
                 $rating: data.rating,
