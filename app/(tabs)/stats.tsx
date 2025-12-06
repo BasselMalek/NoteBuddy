@@ -7,6 +7,7 @@ import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { unixIntToString } from "@/components/EntryCard";
 import { useEntryCRUD } from "@/hooks/useCRUD";
+import { useChartPressState } from "victory-native";
 
 const currentDay = new Date();
 const sevenBack = new Date(currentDay.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -50,8 +51,6 @@ export default function Account() {
     const [totalTimeInvested, setTotalTimeInvested] = useState("0hrs 0m");
     const [dataDiff, setDataDiff] = useState<lineDataItem[]>([]);
     const [dataDur, setDataDur] = useState<lineDataItem[]>([]);
-    const [chartHeight, setChartHeight] = useState(0);
-    const [chartWidth, setChartWidth] = useState(0);
     const [highlightedDiff, setHighlightedDiff] =
         useState("Press to highlight");
     const [highlightedDur, setHighlightedDur] = useState("Press to highlight");
@@ -141,6 +140,38 @@ export default function Account() {
         }, 30000);
     };
 
+    const { state: durPressState, isActive: isDurActive } = useChartPressState({
+        x: 0,
+        y: { y: 0 },
+    });
+
+    const { state: diffPressState, isActive: isDiffActive } =
+        useChartPressState({
+            x: 0,
+            y: { y: 0 },
+        });
+
+    useEffect(() => {
+        if (isDurActive) {
+            const xIndex = Math.round(durPressState.x.value.value);
+            if (xIndex >= 0 && xIndex < dataDur.length) {
+                handleHighlightDur({
+                    dataPointText: dataDur[xIndex].dataPointText,
+                });
+            }
+        }
+    }, [isDurActive, durPressState.x.value.value, dataDur]);
+    useEffect(() => {
+        if (isDiffActive) {
+            const xIndex = Math.round(diffPressState.x.value.value);
+            if (xIndex >= 0 && xIndex < dataDiff.length) {
+                handleHighlightDiff({
+                    dataPointText: dataDiff[xIndex].dataPointText,
+                });
+            }
+        }
+    }, [isDiffActive, diffPressState.x.value.value, dataDiff]);
+
     return (
         <View
             style={{
@@ -152,7 +183,6 @@ export default function Account() {
             <View style={{ flex: 4, flexDirection: "row", gap: 10 }}>
                 <Card
                     style={{
-                        ...styles.card,
                         flex: 6,
                     }}
                 >
@@ -175,7 +205,6 @@ export default function Account() {
                 </Card>
                 <Card
                     style={{
-                        ...styles.card,
                         flex: 13,
                     }}
                 >
@@ -213,12 +242,12 @@ export default function Account() {
 
             <Card
                 style={{
-                    ...styles.card,
                     flex: 7,
+                    overflow: "hidden",
                 }}
-                onLayout={(e) => {
-                    setChartHeight(e.nativeEvent.layout.height);
-                    setChartWidth(e.nativeEvent.layout.width);
+                contentStyle={{
+                    flex: 1,
+                    paddingHorizontal: 0,
                 }}
             >
                 <Card.Title
@@ -226,32 +255,26 @@ export default function Account() {
                     titleStyle={{ color: colors.onSecondaryContainer }}
                     style={{ paddingLeft: 8 }}
                     right={(props) => (
-                        <Text style={styles.chartHighlightText}>
-                            {dataDur.length < 3
-                                ? "Log more entries"
-                                : highlightedDur}
-                        </Text>
+                        <View
+                            style={{
+                                flex: 1,
+                                // backgroundColor: "red",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Text style={styles.chartHighlightText}>
+                                {dataDur.length < 3
+                                    ? "Log more entries"
+                                    : highlightedDur}
+                            </Text>
+                        </View>
                     )}
                 />
-                <Card.Content
-                    style={{
-                        paddingVertical: 0,
-                        paddingHorizontal: 0,
-                        paddingLeft: 8,
-                        justifyContent: "center",
-                    }}
-                >
-                    <ThemeableChart
-                        hidden={dataDur.length < 3}
-                        data={dataDur}
-                        height={chartHeight}
-                        width={chartWidth}
-                        highlightFunction={handleHighlightDur}
-                        lineColor={colors.secondary}
-                        startColor={colors.secondary}
-                        endColor={colors.secondary}
-                    />
-                </Card.Content>
+                <ThemeableChart
+                    hidden={dataDur.length < 3}
+                    data={dataDur}
+                    chartPressState={durPressState}
+                />
             </Card>
             <Card
                 style={{
@@ -281,8 +304,12 @@ export default function Account() {
             </Card>
             <Card
                 style={{
-                    ...styles.card,
                     flex: 7,
+                    overflow: "hidden",
+                }}
+                contentStyle={{
+                    flex: 1,
+                    paddingHorizontal: 0,
                 }}
             >
                 <Card.Title
@@ -297,34 +324,17 @@ export default function Account() {
                         </Text>
                     )}
                 />
-                <Card.Content
-                    style={{
-                        paddingVertical: 0,
-                        paddingHorizontal: 0,
-                        paddingLeft: 8,
-                    }}
-                >
-                    <ThemeableChart
-                        hidden={dataDiff.length < 3}
-                        data={dataDiff}
-                        width={chartWidth}
-                        highlightFunction={handleHighlightDiff}
-                        height={chartHeight}
-                        lineColor={colors.secondary}
-                        startColor={colors.secondary}
-                        endColor={colors.secondary}
-                    />
-                </Card.Content>
+                <ThemeableChart
+                    hidden={dataDiff.length < 3}
+                    data={dataDiff}
+                    chartPressState={diffPressState}
+                />
             </Card>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    card: {
-        flex: 1,
-        // overflow: "hidden",
-    },
     statRow: {
         flexDirection: "row",
         justifyContent: "space-between",
