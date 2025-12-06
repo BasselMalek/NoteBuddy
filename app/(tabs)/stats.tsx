@@ -219,19 +219,21 @@ export default function Account() {
                         }}
                     >
                         <View style={styles.statRow}>
-                            <Text style={styles.statLabel}>Total Days</Text>
+                            <Text style={styles.statLabel}>{"Total Days"}</Text>
                             <Text style={styles.statValue}>{totalDays}</Text>
                         </View>
                         <View style={styles.statRow}>
                             <Text style={styles.statLabel}>
-                                Total Time Invested
+                                {"Total Time Invested"}
                             </Text>
                             <Text style={styles.statValue}>
                                 {totalTimeInvested}
                             </Text>
                         </View>
                         <View style={styles.statRow}>
-                            <Text style={styles.statLabel}>Longest Streak</Text>
+                            <Text style={styles.statLabel}>
+                                {"Longest Streak"}
+                            </Text>
                             <Text style={styles.statValue}>
                                 {longestStreak}
                             </Text>
@@ -258,7 +260,6 @@ export default function Account() {
                         <View
                             style={{
                                 flex: 1,
-                                // backgroundColor: "red",
                                 justifyContent: "center",
                             }}
                         >

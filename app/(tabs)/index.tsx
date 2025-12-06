@@ -1,24 +1,22 @@
 import { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View } from "react-native";
 import { PitchDetector } from "react-native-pitch-detector";
 import { PERMISSIONS, check, RESULTS, request } from "react-native-permissions";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
 import calcMidi from "@/constants/MidiNotes";
 import { FAB, Text, useTheme } from "react-native-paper";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 
-export default function index() {
-    const safeInsets = useSafeAreaInsets();
+export default function Index() {
     const { colors } = useTheme();
-    const [isRecording, setisRecording] = useState<Boolean>();
+    const [isRecording, setisRecording] = useState<boolean>();
     const [pitch, setPitch] = useState<string>("\u{266A}\u{266A}");
     const [fill, setFill] = useState<number>(0);
 
     async function startTuner() {
         let status = await check(PERMISSIONS.ANDROID.RECORD_AUDIO);
-        if (status != RESULTS.GRANTED) {
+        if (status !== RESULTS.GRANTED) {
             const permReq = await request(PERMISSIONS.ANDROID.RECORD_AUDIO);
             status = permReq;
         }
@@ -154,7 +152,11 @@ export default function index() {
                     alignSelf: "center",
                 }}
                 onPress={async () => {
-                    isRecording ? stopTuner() : startTuner();
+                    if (isRecording) {
+                        stopTuner();
+                    } else {
+                        startTuner();
+                    }
                 }}
             />
         </View>

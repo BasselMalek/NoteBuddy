@@ -2,30 +2,27 @@ import { View, StyleSheet } from "react-native";
 import { Text, IconButton, FAB, useTheme } from "react-native-paper";
 import { useState, useRef, useReducer, useEffect, useCallback } from "react";
 import { Pendulum } from "@/components/Pendulum";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import useMetronomePlayer from "@/hooks/useMetronomePlayer";
 import { useFocusEffect } from "expo-router";
 
 export default function Metronome() {
-    const safeInsets = useSafeAreaInsets();
     const { colors } = useTheme();
     const activeLongPressInterval = useRef<any>(null);
     const [isPlayingOverall, setIsPlayingOverall] = useState(false);
     const [currentBpm, setCurrentBpm] = useReducer(
         (state: number, action: number) => {
-            if (state + action > 0 && state + action < 241) {
-                state += action;
-            } else if (state + action <= 0) {
-                state = 0;
+            const newValue = state + action;
+            if (newValue >= 1 && newValue <= 240) {
+                return newValue;
+            } else if (newValue < 1) {
+                return 1;
             } else {
-                state = 240;
+                return 240;
             }
-            return state;
         },
         90
     );
-
     const [beatsPerBar, setBeatsPerBar] = useReducer(
         (state: number, action: number) => {
             const newValue = state + action;
@@ -68,7 +65,7 @@ export default function Metronome() {
     useFocusEffect(
         useCallback(() => {
             return () => toggleMetronome(false);
-        }, [])
+        }, [toggleMetronome])
     );
 
     return (
@@ -88,7 +85,6 @@ export default function Metronome() {
                 sourceColor={colors.surfaceVariant}
                 targetColor={colors.primary}
             />
-
             <View style={style.controlSection}>
                 <Text variant="labelLarge" style={style.label}>
                     {"BPM"}
@@ -100,6 +96,8 @@ export default function Metronome() {
                         size={14}
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
+                        // UPDATED: Disabled if already at minimum
+                        disabled={currentBpm <= 1}
                         onPress={() => {
                             toggleMetronome(false);
                             setCurrentBpm(-10);
@@ -123,6 +121,8 @@ export default function Metronome() {
                         size={14}
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
+                        // UPDATED: Disabled if already at minimum
+                        disabled={currentBpm <= 1}
                         onPress={() => {
                             toggleMetronome(false);
                             setCurrentBpm(-1);
@@ -140,7 +140,6 @@ export default function Metronome() {
                             clearInterval(activeLongPressInterval.current);
                         }}
                     />
-
                     <View
                         style={{
                             backgroundColor: colors.elevation.level1,
@@ -154,13 +153,13 @@ export default function Metronome() {
                     >
                         <Text style={style.valueText}>{currentBpm}</Text>
                     </View>
-
                     <IconButton
                         icon="plus"
                         mode="contained"
                         size={14}
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
+                        disabled={currentBpm >= 240}
                         onPress={() => {
                             toggleMetronome(false);
                             setCurrentBpm(1);
@@ -184,6 +183,7 @@ export default function Metronome() {
                         size={14}
                         containerColor={colors.elevation.level1}
                         style={style.iconButton}
+                        disabled={currentBpm >= 240}
                         onPress={() => {
                             toggleMetronome(false);
                             setCurrentBpm(10);
@@ -203,7 +203,6 @@ export default function Metronome() {
                     />
                 </View>
             </View>
-
             <View style={style.controlSection}>
                 <Text variant="labelLarge" style={style.label}>
                     {"Beats Per Bar"}
@@ -221,7 +220,6 @@ export default function Metronome() {
                             setBeatsPerBar(-1);
                         }}
                     />
-
                     <View
                         style={{
                             backgroundColor: colors.elevation.level1,
@@ -235,7 +233,6 @@ export default function Metronome() {
                     >
                         <Text style={style.valueText}>{beatsPerBar}</Text>
                     </View>
-
                     <IconButton
                         icon="plus"
                         mode="contained"
@@ -250,7 +247,6 @@ export default function Metronome() {
                     />
                 </View>
             </View>
-
             <FAB
                 icon={isPlaying ? "pause" : "play"}
                 mode="elevated"

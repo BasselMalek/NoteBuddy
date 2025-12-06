@@ -45,9 +45,6 @@ const loadSoundBuffers = async (audioContext: AudioContext) => {
                 }
                 return audioContext.decodeAudioData(asset.localUri);
             });
-
-        console.log(`Audio files loaded`);
-
         return { downBuffer, upBuffer };
     } catch (error) {
         console.error(`Failed to load audio files: `, error);

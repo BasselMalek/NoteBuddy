@@ -1,7 +1,6 @@
 import { View } from "react-native";
 import Animated, {
     SharedValue,
-    useAnimatedReaction,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
@@ -27,13 +26,6 @@ function Pendulum(props: {
         overshootClamping: false,
     };
 
-    useAnimatedReaction(
-        () => translateX.value,
-        (prev, now) => {
-            console.log(now);
-        },
-        []
-    );
     const tickerAnimatedStyle = useAnimatedStyle(() => {
         const toVal =
             translateX.value +

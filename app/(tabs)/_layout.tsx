@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { CommonActions } from "@react-navigation/native";
 import { BottomNavigation, useTheme } from "react-native-paper";
-import { useState, useEffect, createContext } from "react";
+import { useEffect } from "react";
 import { enGB, registerTranslation } from "react-native-paper-dates";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
