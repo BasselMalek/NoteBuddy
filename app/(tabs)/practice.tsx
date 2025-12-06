@@ -9,6 +9,77 @@ import Modal from "react-native-modal";
 import RatingSelector from "@/components/RatingSelector";
 import DurationPicker from "@/components/DurationPicker";
 
+const generateDummyEntries = async (
+    addOrUpdateEntry: (data: EntryData) => Promise<number>
+) => {
+    const titles = [
+        "Morning Workout",
+        "Yoga Session",
+        "Running",
+        "Strength Training",
+        "Swimming",
+        "Cycling",
+        "Hiking",
+        "HIIT Workout",
+        "Pilates",
+        "Dance Class",
+        "Boxing",
+        "Rock Climbing",
+        "Tennis",
+        "Basketball",
+        "Soccer Practice",
+    ];
+
+    const descriptions = [
+        "Felt great today, good energy throughout",
+        "Challenging but rewarding session",
+        "Struggled a bit but pushed through",
+        "New personal best!",
+        "Easy recovery day",
+        "Tough workout but completed it",
+        "Weather was perfect for this",
+        "Need to work on form",
+        "Excellent progress today",
+        "Feeling stronger each day",
+    ];
+
+    const today = new Date();
+    const results = [];
+
+    // Start from oldest (today-31) and go to newest (today-1)
+    // This ensures streaks are calculated correctly in chronological order
+    for (let i = 31; i >= 1; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+
+        const entry = {
+            date: date,
+            title: date.toLocaleDateString(),
+            rating: Math.floor(Math.random() * 5) + 1, // 1-5
+            duration: (Math.floor(Math.random() * 90) + 30) * 60 * 1000, // 30-120 minutes
+            desc: descriptions[Math.floor(Math.random() * descriptions.length)],
+            streak: 0, // Will be calculated by the function
+        };
+
+        try {
+            const result = await addOrUpdateEntry(entry);
+            results.push({ date: entry.date, success: result !== null });
+            console.log(`Added entry for ${entry.date.toDateString()}`);
+        } catch (error) {
+            console.error(
+                `Failed to add entry for ${entry.date.toDateString()}:`,
+                error
+            );
+            results.push({ date: entry.date, success: false });
+        }
+    }
+
+    console.log(
+        `Generated ${results.filter((r) => r.success).length} out of 30 entries`
+    );
+    return results;
+};
+
 const currentDay = new Date();
 
 export default function Practice() {
@@ -23,7 +94,7 @@ export default function Practice() {
             const rows = await getAll();
             setEntries(rows);
         })();
-    }, []);
+    }, [getAll]);
 
     useEffect(() => {
         const today = new Date();
@@ -85,6 +156,7 @@ export default function Practice() {
                     onPress={() => {
                         setVis(true);
                     }}
+                    onLongPress={() => generateDummyEntries(addOrUpdateEntry)}
                 />
             </View>
             <View
@@ -94,26 +166,16 @@ export default function Practice() {
             >
                 <FlashList
                     fadingEdgeLength={{ start: 40, end: 3 }}
-                    maintainVisibleContentPosition={{
-                        animateAutoScrollToBottom: true,
-                        startRenderingFromBottom: true,
-                        autoscrollToBottomThreshold: 10,
-                    }}
                     ItemSeparatorComponent={() => (
                         <View style={{ height: 10 }} />
                     )}
+                    maintainVisibleContentPosition={{ disabled: true }}
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={{ paddingBottom: 10 }}
-                    data={entries.reverse()}
-                    renderItem={({ item }) => (
-                        <DisplayEntry
-                            entryData={item}
-                            // onPress={(date) => {
-                            //     setSelected(date === selected ? null : date);
-                            // }}
-                            // selected={selected === item.date}
-                        />
-                    )}
+                    initialScrollIndex={entries.length - 1}
+                    data={entries}
+                    // (a, b) => b.date.getTime() - a.date.getTime()}
+                    renderItem={({ item }) => <DisplayEntry entryData={item} />}
                 />
             </View>
         </View>

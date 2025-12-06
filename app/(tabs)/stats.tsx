@@ -1,13 +1,8 @@
-import {
-    Text as PaperText,
-    Card,
-    PaperProvider,
-    useTheme,
-} from "react-native-paper";
+import { Text, Card, useTheme, Switch } from "react-native-paper";
 import { ThemeableChart, lineDataItem } from "@/components/ThemeableChart";
 import { View, StyleSheet } from "react-native";
 import StreakCircle from "@/components/StreakCircle";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { useFocusEffect } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import { unixIntToString } from "@/components/EntryCard";
@@ -18,14 +13,20 @@ const sevenBack = new Date(currentDay.getTime() - 7 * 24 * 60 * 60 * 1000);
 const thirtyBack = new Date(currentDay.getTime() - 30 * 24 * 60 * 60 * 1000);
 
 const transformToChartData = (
-    data: Array<{ date: string; duration?: number; rating?: number }>,
+    data: { date: string; duration?: number; rating?: number }[],
     type: "duration" | "difficulty"
 ): lineDataItem[] => {
     return data.map((item) => {
+        const date = new Date(item.date);
+        const formattedDate = date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+        });
+
         if (type === "duration") {
             const duration = item.duration ?? 0;
             return {
-                dataPointText: `${item.date}\n${
+                dataPointText: `${formattedDate}\n${
                     Number.isNaN(duration)
                         ? "0hrs 0m"
                         : unixIntToString(duration)
@@ -35,7 +36,7 @@ const transformToChartData = (
         } else {
             const rating = item.rating ?? 0;
             return {
-                dataPointText: `${item.date}\n★${rating}`,
+                dataPointText: `${formattedDate}\n★${rating}`,
                 value: rating,
             };
         }
@@ -54,81 +55,91 @@ export default function Account() {
     const [highlightedDiff, setHighlightedDiff] =
         useState("Press to highlight");
     const [highlightedDur, setHighlightedDur] = useState("Press to highlight");
-    const [durationGraphScale, setDurationGraphScale] = useState("7D");
-    const [difficultyGraphScale, setdifficultyGraphScale] = useState("7D");
+    const [graphScale, setGraphScale] = useState("7D");
     const { colors } = useTheme();
 
+    const highlightTimeoutDur = useRef<number | null>(null);
+    const highlightTimeoutDiff = useRef<number | null>(null);
+
     const db = useSQLiteContext();
-    const {
-        aggregateDifficulty,
-        aggregateDuration,
-        getEntryByDate,
-        countTotalDays,
-        getAll,
-    } = useEntryCRUD(db);
+    const { aggregateDifficulty, aggregateDuration, countTotalDays, getAll } =
+        useEntryCRUD(db);
+
+    useEffect(() => {
+        (async () => {
+            const startDate = graphScale === "7D" ? sevenBack : thirtyBack;
+            const aggDur = await aggregateDuration(startDate, currentDay);
+            setDataDur(transformToChartData(aggDur, "duration"));
+            const aggDif = await aggregateDifficulty(startDate, currentDay);
+            setDataDiff(transformToChartData(aggDif, "difficulty"));
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [graphScale]);
 
     useFocusEffect(
         useCallback(() => {
             (async () => {
-                // Get today's entry to extract current streak
-                const todayEntry = await getEntryByDate(currentDay);
-                setCurrentStreak(todayEntry?.streak ?? 0);
-
-                // Calculate total days
                 const daysCount = await countTotalDays();
                 setTotalDays(daysCount.days);
-
-                // Calculate longest streak and total time invested
                 const allEntries = await getAll();
                 if (allEntries.length > 0) {
-                    // Find longest streak
                     const maxStreak = Math.max(
                         ...allEntries.map((entry) => entry.streak)
                     );
                     setLongestStreak(maxStreak);
-
-                    // Calculate total time invested
+                    const todayString = currentDay.toISOString().slice(0, 10);
+                    const yesterday = new Date(currentDay.getTime());
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const yesterdayString = yesterday
+                        .toISOString()
+                        .slice(0, 10);
+                    const todayEntry = allEntries.find(
+                        (entry) =>
+                            entry.date.toISOString().slice(0, 10) ===
+                            todayString
+                    );
+                    const yesterdayEntry = allEntries.find(
+                        (entry) =>
+                            entry.date.toISOString().slice(0, 10) ===
+                            yesterdayString
+                    );
+                    if (todayEntry) {
+                        setCurrentStreak(todayEntry.streak);
+                    } else if (yesterdayEntry) {
+                        setCurrentStreak(yesterdayEntry.streak);
+                    } else {
+                        setCurrentStreak(0);
+                    }
                     const totalTime = allEntries.reduce(
                         (sum, entry) => sum + entry.duration,
                         0
                     );
                     setTotalTimeInvested(unixIntToString(totalTime));
                 }
-
-                // Fetch and transform duration data
-                if (
-                    durationGraphScale === "7D" ||
-                    durationGraphScale === "30D"
-                ) {
-                    const aggDur = await aggregateDuration(
-                        durationGraphScale === "7D" ? sevenBack : thirtyBack,
-                        currentDay
-                    );
-                    setDataDur(transformToChartData(aggDur, "duration"));
-                }
-
-                // Fetch and transform difficulty data
-                if (
-                    difficultyGraphScale === "7D" ||
-                    difficultyGraphScale === "30D"
-                ) {
-                    const aggDif = await aggregateDifficulty(
-                        difficultyGraphScale === "7D" ? sevenBack : thirtyBack,
-                        currentDay
-                    );
-                    setDataDiff(transformToChartData(aggDif, "difficulty"));
-                }
             })();
-        }, [
-            aggregateDifficulty,
-            aggregateDuration,
-            getEntryByDate,
-            durationGraphScale,
-            difficultyGraphScale,
-            countTotalDays,
-            getAll,
-        ])
+        }, [countTotalDays, getAll])
     );
+
+    // FIX 4: Auto-reset highlight after 30s
+    const handleHighlightDur = (item: any) => {
+        setHighlightedDur(item.dataPointText);
+        if (highlightTimeoutDur.current) {
+            clearTimeout(highlightTimeoutDur.current);
+        }
+        highlightTimeoutDur.current = setTimeout(() => {
+            setHighlightedDur("Press to highlight");
+        }, 30000);
+    };
+
+    const handleHighlightDiff = (item: any) => {
+        setHighlightedDiff(item.dataPointText);
+        if (highlightTimeoutDiff.current) {
+            clearTimeout(highlightTimeoutDiff.current);
+        }
+        highlightTimeoutDiff.current = setTimeout(() => {
+            setHighlightedDiff("Press to highlight");
+        }, 30000);
+    };
 
     return (
         <View
@@ -179,32 +190,27 @@ export default function Account() {
                         }}
                     >
                         <View style={styles.statRow}>
-                            <PaperText style={styles.statLabel}>
-                                Total Days
-                            </PaperText>
-                            <PaperText style={styles.statValue}>
-                                {totalDays}
-                            </PaperText>
+                            <Text style={styles.statLabel}>Total Days</Text>
+                            <Text style={styles.statValue}>{totalDays}</Text>
                         </View>
                         <View style={styles.statRow}>
-                            <PaperText style={styles.statLabel}>
+                            <Text style={styles.statLabel}>
                                 Total Time Invested
-                            </PaperText>
-                            <PaperText style={styles.statValue}>
+                            </Text>
+                            <Text style={styles.statValue}>
                                 {totalTimeInvested}
-                            </PaperText>
+                            </Text>
                         </View>
                         <View style={styles.statRow}>
-                            <PaperText style={styles.statLabel}>
-                                Longest Streak
-                            </PaperText>
-                            <PaperText style={styles.statValue}>
+                            <Text style={styles.statLabel}>Longest Streak</Text>
+                            <Text style={styles.statValue}>
                                 {longestStreak}
-                            </PaperText>
+                            </Text>
                         </View>
                     </Card.Content>
                 </Card>
             </View>
+
             <Card
                 style={{
                     ...styles.card,
@@ -212,43 +218,65 @@ export default function Account() {
                 }}
                 onLayout={(e) => {
                     setChartHeight(e.nativeEvent.layout.height);
-                    setChartWidth(e.nativeEvent.layout.width + 7);
+                    setChartWidth(e.nativeEvent.layout.width);
                 }}
             >
                 <Card.Title
                     title="Duration"
                     titleStyle={{ color: colors.onSecondaryContainer }}
                     style={{ paddingLeft: 8 }}
+                    right={(props) => (
+                        <Text style={styles.chartHighlightText}>
+                            {dataDur.length < 3
+                                ? "Log more entries"
+                                : highlightedDur}
+                        </Text>
+                    )}
                 />
                 <Card.Content
-                    style={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                    style={{
+                        paddingVertical: 0,
+                        paddingHorizontal: 0,
+                        paddingLeft: 8,
+                        justifyContent: "center",
+                    }}
                 >
-                    <View
-                        style={[
-                            styles.chartHighlight,
-                            {
-                                backgroundColor: colors.surfaceVariant,
-                            },
-                        ]}
-                    >
-                        <PaperText style={styles.chartHighlightText}>
-                            {dataDur.length < 3
-                                ? "Log more entries to access stats"
-                                : highlightedDur}
-                        </PaperText>
-                    </View>
                     <ThemeableChart
                         hidden={dataDur.length < 3}
                         data={dataDur}
+                        height={chartHeight}
                         width={chartWidth}
-                        highlightFunction={(item: any) => {
-                            setHighlightedDur(item.dataPointText);
-                        }}
-                        height={chartHeight - 60}
+                        highlightFunction={handleHighlightDur}
                         lineColor={colors.secondary}
                         startColor={colors.secondary}
                         endColor={colors.secondary}
                     />
+                </Card.Content>
+            </Card>
+            <Card
+                style={{
+                    flex: 1,
+                    gap: 0,
+                }}
+            >
+                <Card.Content
+                    style={{
+                        height: "100%",
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 16,
+                        paddingVertical: 4,
+                    }}
+                >
+                    <Text>{"7 Days"}</Text>
+                    <Switch
+                        value={graphScale === "30D"}
+                        onValueChange={(value) =>
+                            setGraphScale(value ? "30D" : "7D")
+                        }
+                    />
+                    <Text>{"30 Days"}</Text>
                 </Card.Content>
             </Card>
             <Card
@@ -261,32 +289,27 @@ export default function Account() {
                     title="Difficulty"
                     titleStyle={{ color: colors.onSecondaryContainer }}
                     style={{ paddingLeft: 8 }}
+                    right={(props) => (
+                        <Text style={styles.chartHighlightText}>
+                            {dataDur.length < 3
+                                ? "Log more entries"
+                                : highlightedDiff}
+                        </Text>
+                    )}
                 />
                 <Card.Content
-                    style={{ paddingVertical: 0, paddingHorizontal: 0 }}
+                    style={{
+                        paddingVertical: 0,
+                        paddingHorizontal: 0,
+                        paddingLeft: 8,
+                    }}
                 >
-                    <View
-                        style={[
-                            styles.chartHighlight,
-                            {
-                                backgroundColor: colors.surfaceVariant,
-                            },
-                        ]}
-                    >
-                        <PaperText style={styles.chartHighlightText}>
-                            {dataDur.length < 3
-                                ? "Log more entries to access stats"
-                                : highlightedDiff}
-                        </PaperText>
-                    </View>
                     <ThemeableChart
                         hidden={dataDiff.length < 3}
                         data={dataDiff}
                         width={chartWidth}
-                        highlightFunction={(item: any) => {
-                            setHighlightedDiff(item.dataPointText);
-                        }}
-                        height={chartHeight - 60}
+                        highlightFunction={handleHighlightDiff}
+                        height={chartHeight}
                         lineColor={colors.secondary}
                         startColor={colors.secondary}
                         endColor={colors.secondary}
@@ -300,7 +323,7 @@ export default function Account() {
 const styles = StyleSheet.create({
     card: {
         flex: 1,
-        overflow: "hidden",
+        // overflow: "hidden",
     },
     statRow: {
         flexDirection: "row",
@@ -316,21 +339,18 @@ const styles = StyleSheet.create({
         flex: 1,
         textAlign: "center",
     },
-    chartHighlight: {
-        borderRadius: 10,
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 7,
-        position: "absolute",
-        top: 0,
-        right: 0,
-        margin: 8,
-        alignSelf: "flex-end",
-        zIndex: 1,
-    },
     chartHighlightText: {
         textAlign: "center",
         lineHeight: 20,
+        fontSize: 12,
+        paddingRight: 16,
+    },
+    switchContainer: {
+        flex: 1,
+        padding: 0,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 16,
     },
 });
